@@ -1,0 +1,78 @@
+{
+  "name": "react-native-leader-line",
+  "version": "1.0.0",
+  "description": "React Native port of the popular leader-line library for drawing arrow lines and connectors between components. Includes fixes and enhancements from community forks.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react-native",
+    "arrow",
+    "line",
+    "svg",
+    "connector",
+    "leader-line",
+    "drawing",
+    "lines",
+    "mobile",
+    "ios",
+    "android",
+    "typescript",
+    "port",
+    "anseki",
+    "arrows",
+    "connectors",
+    "ui",
+    "graphics"
+  ],
+  "author": "Federico Garcia",
+  "contributors": [
+    {
+      "name": "anseki",
+      "url": "https://github.com/anseki",
+      "note": "Original leader-line library author"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/federicogarcia/react-native-leader-line.git"
+  },
+  "homepage": "https://github.com/federicogarcia/react-native-leader-line#readme",
+  "bugs": {
+    "url": "https://github.com/federicogarcia/react-native-leader-line/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/federicogarcia"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-native": ">=0.60.0",
+    "react-native-svg": ">=12.0.0"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE",
+    "example"
+  ],
+  "devDependencies": {
+    "@types/react": "^19.1.6",
+    "@types/react-native": "^0.72.8",
+    "react-native-svg": "^15.12.0",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

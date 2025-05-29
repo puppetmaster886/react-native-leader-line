@@ -1,0 +1,38 @@
+# Development files
+src/
+tsconfig.json
+.vscode/
+.github/
+
+# Node modules
+node_modules/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Example app (keep for reference but exclude from npm)
+example/
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp

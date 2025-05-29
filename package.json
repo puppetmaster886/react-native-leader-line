@@ -42,15 +42,15 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/federicogarcia/react-native-leader-line.git"
+    "url": "https://github.com/puppetmaster886/react-native-leader-line.git"
   },
-  "homepage": "https://github.com/federicogarcia/react-native-leader-line#readme",
+  "homepage": "https://github.com/puppetmaster886/react-native-leader-line#readme",
   "bugs": {
-    "url": "https://github.com/federicogarcia/react-native-leader-line/issues"
+    "url": "https://github.com/puppetmaster886/react-native-leader-line/issues"
   },
   "funding": {
     "type": "github",
-    "url": "https://github.com/sponsors/federicogarcia"
+    "url": "https://github.com/sponsors/puppetmaster886"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

@@ -1,6 +1,6 @@
 {
   "name": "react-native-leader-line",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "React Native library for drawing arrow lines between components",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

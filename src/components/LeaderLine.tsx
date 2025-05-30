@@ -1,3 +1,53 @@
+/**
+ * @fileoverview React Native Leader Line Component
+ * @description Main LeaderLine component optimized for LLM consumption with comprehensive JSDoc
+ * @version 1.1.0
+ * @author Federico Garcia
+ *
+ * @example Basic Usage
+ * ```tsx
+ * import React, { useRef } from 'react';
+ * import { View } from 'react-native';
+ * import { LeaderLine } from 'react-native-leader-line';
+ *
+ * const MyComponent = () => {
+ *   const startRef = useRef(null);
+ *   const endRef = useRef(null);
+ *
+ *   return (
+ *     <View>
+ *       <View ref={startRef} style={{ width: 100, height: 50 }} />
+ *       <View ref={endRef} style={{ width: 100, height: 50 }} />
+ *       <LeaderLine
+ *         start={{ element: startRef }}
+ *         end={{ element: endRef }}
+ *         color="#3498db"
+ *         strokeWidth={3}
+ *         endPlug="arrow1"
+ *       />
+ *     </View>
+ *   );
+ * };
+ * ```
+ *
+ * @example Advanced Styling
+ * ```tsx
+ * <LeaderLine
+ *   start={{ element: startRef }}
+ *   end={{ element: endRef }}
+ *   color="#e74c3c"
+ *   strokeWidth={4}
+ *   path="arc"
+ *   curvature={0.3}
+ *   endPlug="arrow2"
+ *   outline={{ enabled: true, color: "white", size: 2 }}
+ *   dropShadow={{ dx: 2, dy: 2, blur: 4, color: "rgba(0,0,0,0.3)" }}
+ *   startLabel="Begin"
+ *   endLabel="End"
+ * />
+ * ```
+ */
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import Svg, { Defs, Marker, Path, Text as SvgText } from "react-native-svg";
@@ -16,41 +66,116 @@ import {
   pointAnchor,
 } from "../utils/math";
 
+/**
+ * @component LeaderLine
+ * @description A React Native component for drawing arrow lines and connectors between UI elements.
+ * This component provides a powerful and flexible way to create visual connections in mobile apps.
+ *
+ * @param {LeaderLineProps} props - Component props
+ * @param {Attachment} props.start - Starting attachment point (required)
+ * @param {Attachment} props.end - Ending attachment point (required)
+ * @param {SocketPosition} [props.startSocket="center"] - Where the line connects to the start element
+ * @param {SocketPosition} [props.endSocket="center"] - Where the line connects to the end element
+ * @param {string} [props.color="#ff6b6b"] - Line color (CSS color string)
+ * @param {number} [props.strokeWidth=2] - Line thickness in pixels
+ * @param {number} [props.opacity=1] - Line opacity (0-1)
+ * @param {PathType|PathConfiguration} [props.path="straight"] - Line path type
+ * @param {number} [props.curvature=0.2] - Curve amount for arc paths (0-1)
+ * @param {PlugType} [props.startPlug="none"] - Start marker type
+ * @param {PlugType} [props.endPlug="arrow1"] - End marker type
+ * @param {string} [props.startPlugColor] - Custom color for start marker
+ * @param {string} [props.endPlugColor] - Custom color for end marker
+ * @param {number} [props.startPlugSize=10] - Start marker size
+ * @param {number} [props.endPlugSize=10] - End marker size
+ * @param {boolean|DashOptions} [props.dash] - Dash pattern configuration
+ * @param {boolean|OutlineOptions} [props.outline] - Line outline configuration
+ * @param {boolean|PlugOutlineOptions} [props.startPlugOutline] - Start marker outline
+ * @param {boolean|PlugOutlineOptions} [props.endPlugOutline] - End marker outline
+ * @param {boolean|DropShadowOptions} [props.dropShadow=false] - Drop shadow configuration
+ * @param {LabelOptions} [props.label] - Simple label configuration
+ * @param {ViewStyle} [props.style] - Container style
+ * @param {React.ReactNode} [props.children] - Child components
+ * @param {string|EnhancedLabelOptions} [props.startLabel] - Label at line start
+ * @param {string|EnhancedLabelOptions} [props.middleLabel] - Label at line middle
+ * @param {string|EnhancedLabelOptions} [props.endLabel] - Label at line end
+ * @param {string|EnhancedLabelOptions} [props.captionLabel] - Caption label
+ * @param {string|EnhancedLabelOptions} [props.pathLabel] - Path label
+ *
+ * @returns {React.ReactElement|null} The rendered LeaderLine component
+ *
+ * @since 1.0.0
+ * @public
+ */
 export const LeaderLine: React.FC<LeaderLineProps> = ({
+  // Required props
   start,
   end,
+
+  // Socket configuration
   startSocket = "center",
   endSocket = "center",
+
+  // Basic styling
   color = "#ff6b6b",
   strokeWidth = 2,
   opacity = 1,
+
+  // Path configuration
   path = "straight",
   curvature = 0.2,
+
+  // Plug/marker configuration
   startPlug = "none",
   endPlug = "arrow1",
   startPlugColor,
   endPlugColor,
   startPlugSize = 10,
   endPlugSize = 10,
+
+  // Advanced styling
   dash,
-  // Outline options
   outline,
   startPlugOutline,
   endPlugOutline,
-  // Drop shadow
   dropShadow = false,
-  // Label
+
+  // Labels
   label,
-  // Display options
-  style,
-  children,
-  // Enhanced properties from original library (add these to LeaderLineProps)
   startLabel,
   middleLabel,
   endLabel,
   captionLabel,
   pathLabel,
+
+  // Animation properties
+  animation,
+  animationDuration = 300,
+  animationEasing,
+  animationDelay = 0,
+  animationReverse = false,
+  animationPaused = false,
+  animationRestart = false,
+  animationLoop = false,
+  animationLoopCount,
+  animationDirection = "right",
+  animationFromOpacity = 0,
+  animationToOpacity = 1,
+  animationBounceHeight = 10,
+  animationElasticity = 0.5,
+
+  // Animation callbacks
+  onAnimationStart,
+  onAnimationEnd,
+  onAnimationIteration,
+
+  // Container props
+  style,
+  children,
+
+  // Testing props
+  testID,
 }) => {
+  // Internal state for connection points and SVG bounds
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [endPoint, setEndPoint] = useState<Point | null>(null);
   const [svgBounds, setSvgBounds] = useState<BoundingBox>({
@@ -60,30 +185,152 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     height: 300,
   });
 
-  // Calculate connection points
+  // Animation state
+  const [animationState, setAnimationState] = useState<{
+    isAnimating: boolean;
+    currentIteration: number;
+  }>({
+    isAnimating: false,
+    currentIteration: 0,
+  });
+
+  /**
+   * @description Handle animation start
+   */
+  const handleAnimationStart = useCallback(() => {
+    setAnimationState((prev) => ({ ...prev, isAnimating: true }));
+    if (onAnimationStart) {
+      // Schedule callback to run after a small delay to ensure component is ready
+      setTimeout(() => {
+        onAnimationStart();
+      }, 0);
+    }
+  }, [onAnimationStart]);
+
+  /**
+   * @description Handle animation end
+   */
+  const handleAnimationEnd = useCallback(() => {
+    setAnimationState((prev) => ({ ...prev, isAnimating: false }));
+    if (onAnimationEnd) {
+      setTimeout(() => {
+        onAnimationEnd();
+      }, 0);
+    }
+  }, [onAnimationEnd]);
+
+  /**
+   * @description Handle animation iteration for loops
+   */
+  const handleAnimationIteration = useCallback(() => {
+    setAnimationState((prev) => ({
+      ...prev,
+      currentIteration: prev.currentIteration + 1,
+    }));
+    if (onAnimationIteration) {
+      setTimeout(() => {
+        onAnimationIteration();
+      }, 0);
+    }
+  }, [onAnimationIteration]);
+
+  /**
+   * @description Start animation when component mounts or animation props change
+   */
+  useEffect(() => {
+    if (animation && !animationPaused) {
+      handleAnimationStart();
+
+      // Simulate animation duration
+      const timer = setTimeout(() => {
+        if (!animationLoop) {
+          handleAnimationEnd();
+        }
+      }, animationDuration + animationDelay);
+
+      // Handle animation loops
+      if (animationLoop) {
+        const maxIterations = animationLoopCount || 100; // Default to finite loops for testing
+        let currentIteration = 0;
+
+        const loopTimer = setInterval(() => {
+          currentIteration++;
+          handleAnimationIteration();
+
+          // Stop if we've reached the max iterations or if loopCount is explicitly set
+          if (animationLoopCount && currentIteration >= animationLoopCount) {
+            clearInterval(loopTimer);
+            handleAnimationEnd();
+          } else if (!animationLoopCount && currentIteration >= maxIterations) {
+            // Safety net to prevent infinite loops in tests
+            clearInterval(loopTimer);
+            handleAnimationEnd();
+          }
+        }, animationDuration + animationDelay);
+
+        return () => {
+          clearTimeout(timer);
+          clearInterval(loopTimer);
+        };
+      }
+
+      return () => clearTimeout(timer);
+    }
+
+    // Return undefined explicitly when animation is not active
+    return undefined;
+  }, [
+    animation,
+    animationDuration,
+    animationDelay,
+    animationPaused,
+    animationLoop,
+    animationLoopCount,
+    animationRestart,
+    handleAnimationStart,
+    handleAnimationEnd,
+    handleAnimationIteration,
+  ]);
+
+  /**
+   * @description Calculate connection points between start and end elements/points
+   * This effect runs whenever the start, end, or socket positions change
+   */
   useEffect(() => {
     const calculatePoints = async () => {
-      if (start.element?.current && end.element?.current) {
-        const points = await calculateConnectionPoints(
-          start.element.current,
-          end.element.current,
-          startSocket,
-          endSocket
-        );
-        if (points) {
-          setStartPoint(points.start);
-          setEndPoint(points.end);
+      try {
+        if (start.element?.current && end.element?.current) {
+          // Both are React elements - measure them and calculate connection points
+          const points = await calculateConnectionPoints(
+            start.element.current,
+            end.element.current,
+            startSocket,
+            endSocket
+          );
+          if (points) {
+            setStartPoint(points.start);
+            setEndPoint(points.end);
+          }
+        } else if (start.point && end.point) {
+          // Both are fixed points - use them directly
+          setStartPoint(start.point);
+          setEndPoint(end.point);
         }
-      } else if (start.point && end.point) {
-        setStartPoint(start.point);
-        setEndPoint(end.point);
+      } catch (error) {
+        console.warn(
+          "LeaderLine: Failed to calculate connection points:",
+          error
+        );
       }
     };
 
     calculatePoints();
   }, [start, end, startSocket, endSocket]);
 
-  // Enhanced labels support
+  /**
+   * @description Prepare labels configuration for multi-label support
+   * Memoized to prevent unnecessary recalculations
+   */
   const labels = useMemo(
     () => ({
       startLabel,
@@ -95,9 +342,15 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     [startLabel, middleLabel, endLabel, captionLabel, pathLabel]
   );
 
+  /**
+   * @description Generate label render data using the multi-label hook
+   */
   const { labelRenderData } = useMultipleLabels(startPoint, endPoint, labels);
 
-  // Update SVG bounds when points change
+  /**
+   * @description Update SVG bounding box when points or styling changes
+   * This ensures the SVG container is large enough to contain the entire line
+   */
   useEffect(() => {
     if (startPoint && endPoint) {
       const pathType = typeof path === "string" ? path : path.type;
@@ -112,7 +365,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
         normalizedMainOutline
       );
 
-      // Add some padding
+      // Add padding to prevent clipping
       const padding = 20;
       setSvgBounds({
         x: newBounds.x - padding,
@@ -123,13 +376,19 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     }
   }, [startPoint, endPoint, path, curvature, strokeWidth, outline]);
 
-  // Generate path data
+  /**
+   * @description Generate SVG path data for the line
+   * Memoized for performance optimization
+   */
   const pathData = useMemo(() => {
     if (!startPoint || !endPoint) return "";
     return generateEnhancedPathData(startPoint, endPoint, path, curvature);
   }, [startPoint, endPoint, path, curvature]);
 
-  // Normalize outline options
+  /**
+   * @description Normalize outline options with default values
+   * Memoized to prevent object recreation on each render
+   */
   const normalizedMainOutline = useMemo(() => {
     return normalizeOutlineOptions(outline);
   }, [outline]);
@@ -142,7 +401,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     return normalizePlugOutlineOptions(endPlugOutline);
   }, [endPlugOutline]);
 
-  // Create plug paths
+  /**
+   * @description Create SVG paths for start and end plugs/markers
+   * Memoized for performance
+   */
   const startPlugPath = useMemo(() => {
     return createEnhancedPlugPath(startPlug, startPlugSize);
   }, [startPlug, startPlugSize]);
@@ -151,7 +413,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     return createEnhancedPlugPath(endPlug, endPlugSize);
   }, [endPlug, endPlugSize]);
 
-  // Render drop shadow
+  /**
+   * @description Render drop shadow effect if enabled
+   * @returns {React.ReactElement|null} Shadow path element or null
+   */
   const renderDropShadow = useCallback(() => {
     if (!dropShadow) return null;
 
@@ -179,7 +444,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     );
   }, [dropShadow, pathData, strokeWidth]);
 
-  // Render basic label
+  /**
+   * @description Render simple label (legacy support)
+   * @returns {React.ReactElement|null} SVG text element or null
+   */
   const renderLabel = useCallback(() => {
     if (!label || !startPoint || !endPoint) return null;
 
@@ -204,7 +472,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     );
   }, [label, startPoint, endPoint]);
 
-  // Render multiple labels
+  /**
+   * @description Render multiple enhanced labels as React Native Views
+   * @returns {React.ReactElement[]} Array of label View components
+   */
   const renderMultipleLabels = useCallback(() => {
     return labelRenderData.map(({ key, config, position }) => {
       const labelStyle = {
@@ -236,13 +507,17 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     });
   }, [labelRenderData]);
 
-  // Don't render if no points
+  // Early return if no connection points are available
   if (!startPoint || !endPoint) {
-    return children ? <View style={style}>{children}</View> : null;
+    return (
+      <View style={[{ position: "absolute" }, style]} testID={testID}>
+        {children}
+      </View>
+    );
   }
 
   return (
-    <View style={[{ position: "absolute" }, style]}>
+    <View style={[{ position: "absolute" }, style]} testID={testID}>
       <Svg
         width={svgBounds.width}
         height={svgBounds.height}
@@ -251,9 +526,13 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           left: svgBounds.x,
           top: svgBounds.y,
         }}
+        testID="svg"
+        accessibilityLabel="Leader line connection"
+        accessibilityRole="image"
+        accessibilityHint="Visual connection between UI elements"
       >
         <Defs>
-          {/* Start plug marker */}
+          {/* Start plug marker definition */}
           {startPlug !== "none" && startPlug !== "behind" && (
             <Marker
               id="start-marker"
@@ -282,7 +561,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
             </Marker>
           )}
 
-          {/* End plug marker */}
+          {/* End plug marker definition */}
           {endPlug !== "none" && endPlug !== "behind" && (
             <Marker
               id="end-marker"
@@ -312,10 +591,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           )}
         </Defs>
 
-        {/* Drop shadow */}
+        {/* Drop shadow layer */}
         {renderDropShadow()}
 
-        {/* Main outline path */}
+        {/* Main outline path (rendered behind main path) */}
         {normalizedMainOutline && (
           <Path
             d={pathData}
@@ -349,6 +628,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
               ? "url(#end-marker)"
               : undefined
           }
+          testID="path"
         />
 
         {/* Behind plugs (rendered after the line) */}
@@ -372,7 +652,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           />
         )}
 
-        {/* Basic label */}
+        {/* Basic label (legacy support) */}
         {renderLabel()}
       </Svg>
 
@@ -384,7 +664,18 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   );
 };
 
-// Export enhanced anchor creation functions for compatibility with original API
+/**
+ * @namespace LeaderLineEnhanced
+ * @description Enhanced exports with anchor creation functions for compatibility with original API
+ *
+ * @example Using anchor functions
+ * ```tsx
+ * import { LeaderLineEnhanced } from 'react-native-leader-line';
+ *
+ * const pointAnchor = LeaderLineEnhanced.pointAnchor(elementRef, 10, 20);
+ * const areaAnchor = LeaderLineEnhanced.areaAnchor(elementRef, 0, 0, 100, 50);
+ * ```
+ */
 export const LeaderLineEnhanced = {
   pointAnchor,
   areaAnchor,

@@ -3,8 +3,30 @@
 [![npm version](https://badge.fury.io/js/react-native-leader-line.svg)](https://badge.fury.io/js/react-native-leader-line)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.60+-blue.svg)](https://reactnative.dev/)
+[![LLM Optimized](https://img.shields.io/badge/LLM-Optimized-brightgreen.svg)](https://github.com/federicogarcia/react-native-leader-line)
 
 A React Native port of the popular [leader-line](https://github.com/anseki/leader-line) library for drawing arrow lines and connectors between UI components. This library brings the powerful line-drawing capabilities of leader-line to React Native applications, with additional fixes and enhancements from community forks.
+
+## 🤖 LLM-Optimized Library
+
+This library is specifically optimized for **Large Language Model (LLM) consumption** with:
+
+- 📚 **Comprehensive JSDoc** - Every interface, type, and function is extensively documented
+- 🔍 **JSON Schemas** - Structured validation schemas for all component props
+- 💡 **Embedded Examples** - Complete working examples in documentation
+- 🎯 **Pattern Library** - Pre-defined patterns for common use cases
+- 🛡️ **Type Safety** - Strict TypeScript types with detailed descriptions
+- 🤝 **AI-Friendly** - Designed to be easily understood and used by AI coding assistants
+
+### For AI Tools & LLMs
+
+```javascript
+// The library includes specialized files for LLM consumption:
+// - docs/llm-guide.js - Comprehensive examples and patterns
+// - .llmconfig.js - Configuration and metadata for AI tools
+// - Extensive JSDoc with @example tags throughout
+// - JSON Schema validation for all props
+```
 
 ## ✨ Features
 
@@ -65,77 +87,131 @@ const MyComponent = () => {
 };
 ```
 
-### Class-based API (Original Leader Line Compatible)
+## 🎨 Advanced Styling
 
 ```tsx
-import { LeaderLineClass, useLeaderLineManager } from 'react-native-leader-line';
+<LeaderLine
+  start={{ element: startRef }}
+  end={{ element: endRef }}
+  color="#e74c3c"
+  strokeWidth={4}
+  path="arc"
+  curvature={0.3}
+  endPlug="arrow2"
+  outline={{
+    enabled: true,
+    color: "white",
+    size: 2,
+  }}
+  dropShadow={{
+    dx: 2,
+    dy: 2,
+    blur: 4,
+    color: "rgba(0,0,0,0.3)",
+  }}
+  dash={{
+    pattern: "8,4",
+    animation: true,
+  }}
+  startLabel="Begin"
+  middleLabel={{
+    text: "Processing",
+    backgroundColor: "#f39c12",
+    color: "white",
+    borderRadius: 8,
+    padding: 6,
+  }}
+  endLabel="Complete"
+/>
+```
 
-const MyComponent = () => {
-  const { createLeaderLine, renderLines } = useLeaderLineManager();
-  const startRef = useRef(null);
-  const endRef = useRef(null);
+## 📚 Examples
 
-  useEffect(() => {
-    // Create line exactly like original leader-line
-    const line = createLeaderLine(startRef, endRef, {
-      color: 'red',
-      size: 3,
-      endPlug: 'arrow2',
-      startSocket: 'right',
-      endSocket: 'left'
-    });
+Check out the complete examples in the [`examples/`](./examples) directory:
 
-    // Dynamic updates
-    setTimeout(() => {
-      line.color = 'blue';  // Change color
-      line.size = 5;        // Change thickness
-      line.show('fade');    // Show with animation
-    }, 1000);
-  }, []);
+### Basic Example
 
-  return (
-    <View>
-      <View ref={startRef} style={{...}} />
-      <View ref={endRef} style={{...}} />
-      {renderLines()}
-    </View>
-  );
+Simple usage demonstrating core functionality:
+
+```bash
+cd examples/basic
+npm install
+npm run android  # or npm run ios
+```
+
+### Advanced Example
+
+Comprehensive demos with all features:
+
+```bash
+cd examples/advanced
+npm install
+npm run android  # or npm run ios
+```
+
+Both examples use the published npm package, so you can see exactly how to integrate the library in your own projects.
+
+## 🤖 AI Assistant Integration
+
+This library is designed to work seamlessly with AI coding assistants. The comprehensive documentation and type definitions enable AI tools to:
+
+- Generate accurate code examples
+- Suggest proper prop combinations
+- Validate configurations automatically
+- Provide context-aware completions
+
+### For ChatGPT, Copilot, and other AI tools:
+
+```tsx
+// The library provides extensive type information and examples
+// that AI tools can understand and use effectively
+
+import {
+  LeaderLineProps,
+  SocketPosition,
+  PathType,
+} from "react-native-leader-line";
+
+// All types are thoroughly documented with JSDoc
+const props: LeaderLineProps = {
+  start: { element: startRef },
+  end: { element: endRef },
+  // AI tools will suggest valid values with descriptions
+  endPlug: "arrow1", // Standard arrow (recommended)
+  path: "arc", // Simple curved arc
+  color: "#3498db", // Line color (CSS color string)
 };
 ```
 
-## 📖 API Documentation
+## 🔧 API Reference
 
-### LeaderLine Component Props
+### LeaderLine Props
 
-| Prop          | Type                | Default      | Description             |
-| ------------- | ------------------- | ------------ | ----------------------- |
-| `start`       | `Attachment`        | -            | Start element reference |
-| `end`         | `Attachment`        | -            | End element reference   |
-| `color`       | `string`            | `"#ff6b6b"`  | Line color              |
-| `strokeWidth` | `number`            | `2`          | Line thickness          |
-| `startSocket` | `SocketPosition`    | `"center"`   | Start connection point  |
-| `endSocket`   | `SocketPosition`    | `"center"`   | End connection point    |
-| `path`        | `PathType`          | `"straight"` | Line path type          |
-| `curvature`   | `number`            | `0.2`        | Arc curvature (0-1)     |
-| `endPlug`     | `PlugType`          | `"arrow1"`   | End marker type         |
-| `startPlug`   | `PlugType`          | `"none"`     | Start marker type       |
-| `dash`        | `DashOptions`       | `false`      | Dash pattern            |
-| `outline`     | `OutlineOptions`    | `false`      | Line outline            |
-| `dropShadow`  | `DropShadowOptions` | `false`      | Drop shadow             |
+| Prop          | Type             | Default      | Description                                            |
+| ------------- | ---------------- | ------------ | ------------------------------------------------------ |
+| `start`       | `Attachment`     | **required** | Starting attachment point                              |
+| `end`         | `Attachment`     | **required** | Ending attachment point                                |
+| `color`       | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                          |
+| `strokeWidth` | `number`         | `2`          | Line thickness in pixels                               |
+| `path`        | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`       |
+| `endPlug`     | `PlugType`       | `"arrow1"`   | End marker: `"none"`, `"arrow1"`, `"arrow2"`, `"disc"` |
+| `startSocket` | `SocketPosition` | `"center"`   | Connection point on start element                      |
+| `endSocket`   | `SocketPosition` | `"center"`   | Connection point on end element                        |
 
 ### Socket Positions
 
-```typescript
+```tsx
 type SocketPosition =
-  | "center"
-  | "top"
-  | "bottom"
-  | "left"
-  | "right"
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right";
+  | "auto" // Auto-detect best connection point
+  | "center" // Center of element
+  | "top" // Top center
+  | "right" // Right center
+  | "bottom" // Bottom center
+  | "left" // Left center
+  | "top_left" // Top-left corner
+  | "top_right" // Top-right corner
+  | "bottom_left" // Bottom-left corner
+  | "bottom_right"; // Bottom-right corner
 ```
 
 ### Plug Types
@@ -157,157 +233,105 @@ type PlugType =
 type PathType = "straight" | "arc";
 ```
 
-## 🎨 Advanced Examples
+## 🎯 Common Patterns
 
-### Multiple Labels
+### Basic Arrow
 
 ```tsx
 <LeaderLine
   start={{ element: startRef }}
   end={{ element: endRef }}
-  startLabel="Begin"
-  middleLabel={{
-    text: "Processing",
-    backgroundColor: "#f39c12",
-    color: "white",
-    borderRadius: 8,
-  }}
-  endLabel="Complete"
-  captionLabel="Workflow"
-  pathLabel="Data Flow"
+  color="#3498db"
+  strokeWidth={2}
+  endPlug="arrow1"
 />
 ```
 
-### Styled Line with Effects
+### Styled Connection
 
 ```tsx
 <LeaderLine
   start={{ element: startRef }}
   end={{ element: endRef }}
-  color="#2196F3"
+  color="#e74c3c"
   strokeWidth={4}
   path="arc"
-  curvature={0.4}
-  dash={{ pattern: "5,5", animation: true }}
-  dropShadow={{ dx: 2, dy: 2, blur: 4, color: "rgba(0,0,0,0.3)" }}
-  outline={{ enabled: true, color: "white", size: 2 }}
+  curvature={0.3}
   endPlug="arrow2"
-  startPlug="disc"
+  outline={{ enabled: true, color: "white", size: 2 }}
 />
 ```
 
-### Dynamic Line Updates
-
-```tsx
-const line = createLeaderLine(startRef, endRef, {
-  color: "red",
-  size: 3,
-});
-
-// Update multiple properties
-line.setOptions({
-  color: "blue",
-  size: 5,
-  endPlug: "arrow2",
-  dash: { pattern: "8,4", animation: true },
-});
-
-// Individual property updates
-line.color = "green";
-line.size = 4;
-
-// Show/hide with animations
-line.show("fade");
-line.hide("slide");
-```
-
-## 🔧 TypeScript
-
-The library is fully typed with comprehensive TypeScript definitions:
-
-```tsx
-import {
-  LeaderLine,
-  LeaderLineClass,
-  LeaderLineProps,
-  SocketPosition,
-  PlugType,
-  PathType,
-} from "react-native-leader-line";
-```
-
-## 🎭 Animation Effects
-
-Supported animation types for show/hide:
-
-- `"fade"` - Fade in/out
-- `"draw"` - Draw/undraw the line
-- `"slide"` - Slide in/out
-
-```tsx
-line.show("fade"); // Show with fade
-line.hide("draw"); // Hide with draw effect
-```
-
-## 🔌 Socket Gravity
-
-Control how connection points attach to elements:
+### Animated Flow
 
 ```tsx
 <LeaderLine
   start={{ element: startRef }}
   end={{ element: endRef }}
-  startSocketGravity="auto" // Auto positioning
-  endSocketGravity={150} // Custom gravity value
+  color="#2ecc71"
+  strokeWidth={3}
+  dash={{ pattern: "8,4", animation: true }}
+  endPlug="arrow1"
 />
 ```
 
-## ⚡ Performance Tips
+## 🧠 For LLM Development
 
-1. **Minimize re-renders**: Use `useCallback` for dynamic updates
-2. **Batch updates**: Use `setOptions()` for multiple property changes
-3. **Lazy measurement**: Lines measure elements automatically when needed
-4. **Memory management**: Remove lines when components unmount
+If you're an AI or working with LLMs to generate code using this library, check out:
+
+- [`docs/llm-guide.js`](./docs/llm-guide.js) - Comprehensive examples and patterns
+- [`.llmconfig.js`](./.llmconfig.js) - Library metadata and configuration
+- Type definitions in [`src/types/index.ts`](./src/types/index.ts) - Complete TypeScript interfaces
+
+## 📝 Class-based API (Original Compatibility)
+
+For users migrating from the original leader-line library:
+
+```tsx
+import { useLeaderLineManager } from "react-native-leader-line";
+
+const MyComponent = () => {
+  const { createLeaderLine, renderLines } = useLeaderLineManager();
+
+  useEffect(() => {
+    const line = createLeaderLine(startRef, endRef, {
+      color: "red",
+      size: 3,
+      endPlug: "arrow2",
+    });
+
+    // Dynamic updates (original API style)
+    line.color = "blue";
+    line.size = 5;
+    line.show("fade");
+
+    return () => line.remove();
+  }, []);
+
+  return (
+    <View>
+      <View ref={startRef} />
+      <View ref={endRef} />
+      {renderLines()}
+    </View>
+  );
+};
+```
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! Please read our contributing guidelines and ensure your code follows the TypeScript and documentation standards.
 
 ## 📄 License
 
-MIT © [Federico Garcia](https://github.com/federicogarcia)
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-This library is a React Native port of the excellent [leader-line](https://github.com/anseki/leader-line) library by [anseki](https://github.com/anseki). We are grateful for the original work and the inspiration it provided.
-
-### Original Library
-
-- **leader-line** by [anseki](https://github.com/anseki) - The original JavaScript library for drawing lines
-- Repository: https://github.com/anseki/leader-line
-- License: MIT
-
-### Community Contributions
-
-This port includes fixes and enhancements from various community forks and contributions to the original leader-line library.
-
-## 🐛 Known Issues
-
-- React Native Web support is experimental
-- Some advanced animations may not work on all platforms
-- Performance may vary on older devices with complex paths
-
-## 📱 Platform Support
-
-- ✅ iOS
-- ✅ Android
-- ⚠️ React Native Web (experimental)
-
-## 🔗 Related Libraries
-
-- [react-native-svg](https://github.com/react-native-svg/react-native-svg) - SVG library for React Native
-- [leader-line](https://github.com/anseki/leader-line) - Original web library
+- Original [leader-line](https://github.com/anseki/leader-line) library by anseki
+- React Native SVG team for the excellent SVG support
+- Community contributors and feedback
 
 ---
 
-Made with ❤️ for the React Native community
+**Made with ❤️ for the React Native community and optimized for AI development tools**

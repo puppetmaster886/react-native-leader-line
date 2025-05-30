@@ -37,7 +37,8 @@ export const useLeaderLine = ({
     end: Point;
   } | null>(null);
   const [isReady, setIsReady] = useState(false);
-  // Remove ResizeObserver for React Native compatibility
+
+  // Use number instead of NodeJS.Timeout for React Native compatibility
   const intervalRef = useRef<number | null>(null);
 
   const calculateConnectionPoint = useCallback(

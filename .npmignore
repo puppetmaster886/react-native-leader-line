@@ -10,8 +10,8 @@ node_modules/
 # Build artifacts
 *.tsbuildinfo
 
-# Example app (keep for reference but exclude from npm)
-example/
+# Example apps (keep for reference but exclude from npm)
+examples/
 
 # Lock files
 package-lock.json

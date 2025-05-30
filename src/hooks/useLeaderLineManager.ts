@@ -23,6 +23,14 @@ export const useLeaderLineManager = (options: any = {}) => {
     []
   );
 
+  // Alias for createLine to match test expectations
+  const addLine = useCallback(
+    (id: string, props: Partial<LeaderLineProps> = {}) => {
+      return createLine(id, props);
+    },
+    [createLine]
+  );
+
   const updateLine = useCallback(
     (id: string, props: Partial<LeaderLineProps>) => {
       setLines((prev) => {
@@ -76,6 +84,15 @@ export const useLeaderLineManager = (options: any = {}) => {
     });
   }, []);
 
+  const clear = useCallback(() => {
+    setLines(new Map());
+  }, []);
+
+  // Alias for clear to match test expectations
+  const clearAll = useCallback(() => {
+    clear();
+  }, [clear]);
+
   useEffect(() => {
     setIsInitialized(true);
   }, []);
@@ -84,14 +101,16 @@ export const useLeaderLineManager = (options: any = {}) => {
     lines: Array.from(lines.values()),
     isInitialized,
     createLine,
+    addLine, // Added for test compatibility
     updateLine,
     removeLine,
     showLine,
     hideLine,
     refreshAll,
+    clear,
+    clearAll, // Added for test compatibility
     getLine: (id: string) => lines.get(id),
     hasLine: (id: string) => lines.has(id),
-    clear: () => setLines(new Map()),
   };
 };
 

@@ -8,70 +8,96 @@ A React Native port of the popular [leader-line](https://github.com/anseki/leade
 
 ## ✨ Features
 
-- 🎯 **Multiple Plug Types**: arrow1, arrow2, disc, square, diamond, hand, crosshair, and more
-- 📍 **Flexible Anchors**: pointAnchor, areaAnchor, mouseHoverAnchor (adapted for touch)
-- 🏷️ **Multiple Labels**: startLabel, middleLabel, endLabel, captionLabel, pathLabel
-- 🎨 **Visual Effects**: outline, drop shadows, dash patterns
-- 📐 **Socket Positioning**: 12 different socket positions with gravity control
-- 🛤️ **Path Types**: straight, arc, fluid, magnet, grid
-- 🎭 **Animations**: show/hide effects with customizable timing
-- 📱 **React Native Ready**: Built specifically for iOS and Android
-- 🔧 **TypeScript Support**: Full type definitions included
-- ⚡ **Performance Optimized**: Efficient rendering using react-native-svg
+- 🎯 **Multiple API Styles**: Functional components, class-based API (like original), and hooks
+- 🔄 **Dynamic Updates**: Change line properties in real-time
+- 🎨 **Rich Styling**: Colors, gradients, outlines, shadows, dash patterns
+- 📐 **Path Types**: Straight lines, arcs, and custom curvature
+- 🔌 **Socket System**: Flexible connection points with gravity
+- 🏷️ **Multiple Labels**: Start, middle, end, caption, and path labels
+- ⚡ **Animations**: Show/hide effects with smooth transitions
+- 🎪 **Plug Types**: Arrows, discs, squares, and custom markers
+- 📱 **Mobile Optimized**: Performance tuned for React Native
+- 🔧 **TypeScript**: Full type safety and IntelliSense support
 
 ## 📦 Installation
 
 ```bash
 npm install react-native-leader-line react-native-svg
+# or
+yarn add react-native-leader-line react-native-svg
 ```
 
-**Note**: This library requires `react-native-svg` as a peer dependency.
-
 ### iOS Setup
-
-For iOS, you need to install the pod:
 
 ```bash
 cd ios && pod install
 ```
 
-### Android Setup
-
-No additional setup required for Android when using React Native 0.60+.
-
 ## 🚀 Quick Start
 
+### Functional Component API (Recommended)
+
 ```tsx
-import React, { useRef } from "react";
-import { View, Text } from "react-native";
-import { LeaderLine } from "react-native-leader-line";
+import React, { useRef } from 'react';
+import { View } from 'react-native';
+import { LeaderLine } from 'react-native-leader-line';
 
 const MyComponent = () => {
   const startRef = useRef(null);
   const endRef = useRef(null);
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <View ref={startRef} style={{ padding: 10, backgroundColor: "blue" }}>
-        <Text style={{ color: "white" }}>Start Point</Text>
-      </View>
-
-      <View
-        ref={endRef}
-        style={{ padding: 10, backgroundColor: "red", marginTop: 100 }}
-      >
-        <Text style={{ color: "white" }}>End Point</Text>
-      </View>
+    <View>
+      <View ref={startRef} style={{...}} />
+      <View ref={endRef} style={{...}} />
 
       <LeaderLine
         start={{ element: startRef }}
         end={{ element: endRef }}
-        color="green"
-        size={3}
+        color="#3498db"
+        strokeWidth={3}
         endPlug="arrow1"
-        startSocket="bottom"
-        endSocket="top"
+        startLabel="Start"
+        endLabel="End"
       />
+    </View>
+  );
+};
+```
+
+### Class-based API (Original Leader Line Compatible)
+
+```tsx
+import { LeaderLineClass, useLeaderLineManager } from 'react-native-leader-line';
+
+const MyComponent = () => {
+  const { createLeaderLine, renderLines } = useLeaderLineManager();
+  const startRef = useRef(null);
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    // Create line exactly like original leader-line
+    const line = createLeaderLine(startRef, endRef, {
+      color: 'red',
+      size: 3,
+      endPlug: 'arrow2',
+      startSocket: 'right',
+      endSocket: 'left'
+    });
+
+    // Dynamic updates
+    setTimeout(() => {
+      line.color = 'blue';  // Change color
+      line.size = 5;        // Change thickness
+      line.show('fade');    // Show with animation
+    }, 1000);
+  }, []);
+
+  return (
+    <View>
+      <View ref={startRef} style={{...}} />
+      <View ref={endRef} style={{...}} />
+      {renderLines()}
     </View>
   );
 };
@@ -79,34 +105,57 @@ const MyComponent = () => {
 
 ## 📖 API Documentation
 
-### Basic Props
+### LeaderLine Component Props
 
-| Prop        | Type         | Default     | Description               |
-| ----------- | ------------ | ----------- | ------------------------- |
-| `start`     | `Attachment` | required    | Starting point attachment |
-| `end`       | `Attachment` | required    | Ending point attachment   |
-| `color`     | `string`     | `"#ff6b6b"` | Line color                |
-| `size`      | `number`     | `2`         | Line thickness            |
-| `startPlug` | `PlugType`   | `"none"`    | Start point plug type     |
-| `endPlug`   | `PlugType`   | `"arrow1"`  | End point plug type       |
+| Prop          | Type                | Default      | Description             |
+| ------------- | ------------------- | ------------ | ----------------------- |
+| `start`       | `Attachment`        | -            | Start element reference |
+| `end`         | `Attachment`        | -            | End element reference   |
+| `color`       | `string`            | `"#ff6b6b"`  | Line color              |
+| `strokeWidth` | `number`            | `2`          | Line thickness          |
+| `startSocket` | `SocketPosition`    | `"center"`   | Start connection point  |
+| `endSocket`   | `SocketPosition`    | `"center"`   | End connection point    |
+| `path`        | `PathType`          | `"straight"` | Line path type          |
+| `curvature`   | `number`            | `0.2`        | Arc curvature (0-1)     |
+| `endPlug`     | `PlugType`          | `"arrow1"`   | End marker type         |
+| `startPlug`   | `PlugType`          | `"none"`     | Start marker type       |
+| `dash`        | `DashOptions`       | `false`      | Dash pattern            |
+| `outline`     | `OutlineOptions`    | `false`      | Line outline            |
+| `dropShadow`  | `DropShadowOptions` | `false`      | Drop shadow             |
 
 ### Socket Positions
 
-- `"auto"`, `"center"`, `"top"`, `"right"`, `"bottom"`, `"left"`
-- `"top_left"`, `"top_right"`, `"bottom_left"`, `"bottom_right"`
+```typescript
+type SocketPosition =
+  | "center"
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+```
 
 ### Plug Types
 
-- `"none"`, `"behind"`, `"disc"`, `"square"`, `"arrow1"`, `"arrow2"`, `"arrow3"`
-- `"hand"`, `"crosshair"`, `"diamond"`
+```typescript
+type PlugType =
+  | "none"
+  | "arrow1"
+  | "arrow2"
+  | "arrow3"
+  | "disc"
+  | "square"
+  | "behind";
+```
 
 ### Path Types
 
-- `"straight"`: Direct line between points
-- `"arc"`: Curved arc line
-- `"fluid"`: Smooth curved line
-- `"magnet"`: Magnetic-style connection
-- `"grid"`: Grid-aligned path
+```typescript
+type PathType = "straight" | "arc";
+```
 
 ## 🎨 Advanced Examples
 
@@ -117,9 +166,15 @@ const MyComponent = () => {
   start={{ element: startRef }}
   end={{ element: endRef }}
   startLabel="Begin"
-  middleLabel="Process"
+  middleLabel={{
+    text: "Processing",
+    backgroundColor: "#f39c12",
+    color: "white",
+    borderRadius: 8,
+  }}
   endLabel="Complete"
   captionLabel="Workflow"
+  pathLabel="Data Flow"
 />
 ```
 
@@ -130,68 +185,97 @@ const MyComponent = () => {
   start={{ element: startRef }}
   end={{ element: endRef }}
   color="#2196F3"
-  size={4}
+  strokeWidth={4}
+  path="arc"
+  curvature={0.4}
   dash={{ pattern: "5,5", animation: true }}
   dropShadow={{ dx: 2, dy: 2, blur: 4, color: "rgba(0,0,0,0.3)" }}
   outline={{ enabled: true, color: "white", size: 2 }}
+  endPlug="arrow2"
+  startPlug="disc"
 />
 ```
 
-### Class-based API (Leader Line Compatible)
+### Dynamic Line Updates
 
 ```tsx
-import { LeaderLineClass } from "react-native-leader-line";
-
-const line = new LeaderLineClass(startRef, endRef, {
+const line = createLeaderLine(startRef, endRef, {
   color: "red",
   size: 3,
-  endPlug: "arrow2",
 });
 
-// Show with animation
+// Update multiple properties
+line.setOptions({
+  color: "blue",
+  size: 5,
+  endPlug: "arrow2",
+  dash: { pattern: "8,4", animation: true },
+});
+
+// Individual property updates
+line.color = "green";
+line.size = 4;
+
+// Show/hide with animations
 line.show("fade");
-
-// Hide with animation
-line.hide("fade");
-
-// Update properties
-line.color = "blue";
-line.endPlug = "disc";
+line.hide("slide");
 ```
 
 ## 🔧 TypeScript
 
-This library is written in TypeScript and provides full type definitions:
+The library is fully typed with comprehensive TypeScript definitions:
 
 ```tsx
 import {
+  LeaderLine,
+  LeaderLineClass,
   LeaderLineProps,
   SocketPosition,
   PlugType,
+  PathType,
 } from "react-native-leader-line";
-
-const MyTypedComponent: React.FC = () => {
-  const socketPosition: SocketPosition = "top_right";
-  const plugType: PlugType = "arrow2";
-
-  return (
-    <LeaderLine
-      start={{ element: startRef }}
-      end={{ element: endRef }}
-      startSocket={socketPosition}
-      endPlug={plugType}
-    />
-  );
-};
 ```
+
+## 🎭 Animation Effects
+
+Supported animation types for show/hide:
+
+- `"fade"` - Fade in/out
+- `"draw"` - Draw/undraw the line
+- `"slide"` - Slide in/out
+
+```tsx
+line.show("fade"); // Show with fade
+line.hide("draw"); // Hide with draw effect
+```
+
+## 🔌 Socket Gravity
+
+Control how connection points attach to elements:
+
+```tsx
+<LeaderLine
+  start={{ element: startRef }}
+  end={{ element: endRef }}
+  startSocketGravity="auto" // Auto positioning
+  endSocketGravity={150} // Custom gravity value
+/>
+```
+
+## ⚡ Performance Tips
+
+1. **Minimize re-renders**: Use `useCallback` for dynamic updates
+2. **Batch updates**: Use `setOptions()` for multiple property changes
+3. **Lazy measurement**: Lines measure elements automatically when needed
+4. **Memory management**: Remove lines when components unmount
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+MIT © [Federico Garcia](https://github.com/federicogarcia)
 
 ## 🙏 Acknowledgments
 

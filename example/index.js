@@ -1,6 +1,8 @@
 import { AppRegistry } from 'react-native';
-import { App } from './src/App';
+import CompleteDemo from './CompleteDemo';
 
-const appName = 'ReactNativeLeaderLineExample';
+// Registrar el componente principal para React Native
+AppRegistry.registerComponent('main', () => CompleteDemo);
 
-AppRegistry.registerComponent(appName, () => App);
+// Export default para compatibilidad
+export default CompleteDemo;

@@ -1,11 +1,12 @@
 {
   "name": "react-native-leader-line",
   "version": "1.0.0",
-  "description": "React Native port of the popular leader-line library for drawing arrow lines and connectors between components. Includes fixes and enhancements from community forks.",
+  "description": "React Native library for drawing arrow lines between components",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-to-vendor",
+    "copy-to-vendor": "node scripts/copy-to-vendor.js",
     "dev": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build",
@@ -20,37 +21,17 @@
     "leader-line",
     "drawing",
     "lines",
-    "mobile",
-    "ios",
-    "android",
-    "typescript",
-    "port",
-    "anseki",
-    "arrows",
-    "connectors",
-    "ui",
-    "graphics"
+    "mobile"
   ],
   "author": "Federico Garcia",
-  "contributors": [
-    {
-      "name": "anseki",
-      "url": "https://github.com/anseki",
-      "note": "Original leader-line library author"
-    }
-  ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/puppetmaster886/react-native-leader-line.git"
+    "url": "https://github.com/federicogarcia/react-native-leader-line.git"
   },
-  "homepage": "https://github.com/puppetmaster886/react-native-leader-line#readme",
+  "homepage": "https://github.com/federicogarcia/react-native-leader-line#readme",
   "bugs": {
-    "url": "https://github.com/puppetmaster886/react-native-leader-line/issues"
-  },
-  "funding": {
-    "type": "github",
-    "url": "https://github.com/sponsors/puppetmaster886"
+    "url": "https://github.com/federicogarcia/react-native-leader-line/issues"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
@@ -60,8 +41,7 @@
   "files": [
     "lib",
     "README.md",
-    "LICENSE",
-    "example"
+    "LICENSE"
   ],
   "devDependencies": {
     "@types/react": "^19.1.6",
@@ -71,8 +51,5 @@
   },
   "engines": {
     "node": ">=14.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

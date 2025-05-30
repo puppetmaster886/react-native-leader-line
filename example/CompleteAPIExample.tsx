@@ -1,13 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LeaderLine } from '../src/components/LeaderLineClass';
 import { useLeaderLineManager } from '../src/hooks/useLeaderLineManager';
 
 export default function CompleteAPIExample() {
@@ -15,196 +14,177 @@ export default function CompleteAPIExample() {
   const box2Ref = useRef(null);
   const box3Ref = useRef(null);
   const box4Ref = useRef(null);
+  const centerRef = useRef(null);
 
   const { createLeaderLine, renderLines, measureAllLines } = useLeaderLineManager();
+  const [lines, setLines] = useState<any[]>([]);
+  const [animationStep, setAnimationStep] = useState(0);
 
   useEffect(() => {
-    // Demostrar todas las funcionalidades migradas
+    // Demonstrate all migrated functionalities
     const setupAdvancedDemo = () => {
-      // 1. Línea con setOptions y múltiples labels
-      const line1 = createLeaderLine(box1Ref, box2Ref, {
+      // 1. Line with setOptions and multiple labels
+      const line1 = createLeaderLine(box1Ref, centerRef, {
         color: '#e74c3c',
         strokeWidth: 3,
         path: 'arc',
-        startLabel: 'Start Point',
+        startLabel: 'Data Source',
         middleLabel: {
-          text: 'Data Flow',
+          text: 'Processing Flow',
           fontSize: 14,
           backgroundColor: '#fff3cd',
           borderRadius: 8,
           color: '#856404',
         },
-        endLabel: 'End Point',
-        gradient: {
-          start: '#e74c3c',
-          end: '#c0392b',
-        },
+        endLabel: 'Output',
+        startSocket: 'right',
+        endSocket: 'left',
       });
 
-      // 2. Línea con plugs avanzados y outline
-      const line2 = createLeaderLine(box2Ref, box3Ref, {
+      // 2. Line with gradient and outline
+      const line2 = createLeaderLine(box2Ref, centerRef, {
         color: '#3498db',
         strokeWidth: 4,
+        path: 'straight',
+        outline: { enabled: true, color: 'white', size: 2 },
+        dropShadow: { dx: 2, dy: 2, blur: 4, color: 'rgba(0,0,0,0.3)' },
+        endPlug: 'arrow2',
+        startSocket: 'bottom',
+        endSocket: 'top',
+      });
+
+      // 3. Dashed line with custom plugs
+      const line3 = createLeaderLine(box3Ref, centerRef, {
+        color: '#2ecc71',
+        strokeWidth: 3,
+        dash: { pattern: '8,4', animation: true },
         startPlug: 'disc',
         endPlug: 'arrow1',
-        startPlugColor: '#2980b9',
-        endPlugColor: '#1abc9c',
-        startPlugSize: 1.5,
-        endPlugSize: 2,
-        outline: {
-          color: '#34495e',
-          width: 2,
-        },
-        dash: {
-          len: 10,
-          gap: 5,
-          animation: true,
-        },
+        startPlugSize: 8,
+        endPlugSize: 12,
+        startSocket: 'left',
+        endSocket: 'right',
       });
 
-      // 3. Línea con efectos avanzados
-      const line3 = createLeaderLine(box3Ref, box4Ref, {
+      // 4. Line with path label and curved path
+      const line4 = createLeaderLine(box4Ref, centerRef, {
         color: '#9b59b6',
-        strokeWidth: 3,
-        path: 'fluid',
-        glow: {
-          color: '#8e44ad',
-          width: 4,
-          opacity: 0.6,
-        },
-        dropShadow: true,
-        label: {
-          text: 'Glowing Connection',
-          color: '#ffffff',
-          backgroundColor: '#8e44ad',
-          borderRadius: 12,
-          padding: 8,
-        },
+        strokeWidth: 2,
+        path: 'arc',
+        curvature: 0.4,
+        pathLabel: 'Curved Connection',
+        captionLabel: 'Demo Line',
+        startSocket: 'top',
+        endSocket: 'bottom',
       });
 
-      // 4. Demostrar setOptions después de crear
-      setTimeout(() => {
-        line1.setOptions({
-          color: '#f39c12',
-          strokeWidth: 5,
-          middleLabel: {
-            text: 'Updated!',
-            fontSize: 16,
-            backgroundColor: '#fff3e0',
-            color: '#e65100',
-          },
-        });
-      }, 2000);
-
-      // 5. Demostrar animaciones avanzadas
-      setTimeout(() => {
-        line2.hide('draw', { duration: 500 });
-        setTimeout(() => {
-          line2.show('elastic', { duration: 800 });
-        }, 600);
-      }, 3000);
-
-      // 6. Demostrar eventos
-      line3.on('update', (data) => {
-        console.log('Line 3 updated:', data);
-      });
-
-      line3.on('show', () => {
-        console.log('Line 3 shown');
-      });
-
-      // 7. Cambios dinámicos con métodos individuales
-      setTimeout(() => {
-        line3
-          .color('#e67e22')
-          .size(6)
-          .startPlug('square')
-          .endPlug('hand')
-          .startPlugColor('#d35400')
-          .endPlugColor('#f39c12');
-      }, 4000);
+      setLines([line1, line2, line3, line4]);
     };
 
-    const timer = setTimeout(setupAdvancedDemo, 500);
+    // Wait for layout to complete
+    const timer = setTimeout(setupAdvancedDemo, 300);
     return () => clearTimeout(timer);
   }, [createLeaderLine]);
 
-  const testAdvancedAnimations = () => {
-    // Test all new animation effects
-    measureAllLines();
+  // Demonstrate dynamic property changes
+  const animateLines = () => {
+    if (lines.length === 0) return;
+
+    const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
+    const nextStep = (animationStep + 1) % colors.length;
+    
+    lines.forEach((line, index) => {
+      // Change colors dynamically
+      line.color = colors[nextStep];
+      
+      // Change line width
+      line.size = 2 + (nextStep * 2);
+      
+      // Toggle different plug types
+      const plugTypes = ['none', 'arrow1', 'arrow2', 'disc', 'square'];
+      line.endPlug = plugTypes[nextStep];
+    });
+
+    setAnimationStep(nextStep);
   };
 
-  const demonstrateInstanceManagement = () => {
-    // Show instance management
-    const allInstances = LeaderLine.getAllInstances();
-    console.log(`Total instances: ${allInstances.length}`);
-    
-    allInstances.forEach((instance, index) => {
-      setTimeout(() => {
-        instance.animate({
-          type: 'bounce',
-          duration: 600,
-        });
-      }, index * 200);
+  const toggleVisibility = () => {
+    lines.forEach((line, index) => {
+      if (index % 2 === 0) {
+        line.show('fade');
+      } else {
+        line.hide('fade');
+      }
     });
+  };
+
+  const resetLines = () => {
+    lines.forEach(line => {
+      line.setOptions({
+        color: '#e74c3c',
+        size: 3,
+        endPlug: 'arrow1',
+      });
+      line.show();
+    });
+    setAnimationStep(0);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Complete Leader-Line API</Text>
-        <Text style={styles.subtitle}>
-          Todas las funcionalidades de la librería original migradas
-        </Text>
-
+        <Text style={styles.title}>React Native Leader Line</Text>
+        <Text style={styles.subtitle}>Complete API Demonstration</Text>
+        
         <View style={styles.controls}>
-          <TouchableOpacity style={styles.button} onPress={testAdvancedAnimations}>
-            <Text style={styles.buttonText}>🎬 Advanced Animations</Text>
+          <TouchableOpacity style={styles.button} onPress={animateLines}>
+            <Text style={styles.buttonText}>Animate</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={demonstrateInstanceManagement}>
-            <Text style={styles.buttonText}>📊 Instance Management</Text>
+          <TouchableOpacity style={styles.button} onPress={toggleVisibility}>
+            <Text style={styles.buttonText}>Toggle</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={resetLines}>
+            <Text style={styles.buttonText}>Reset</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.demoArea}>
+          {/* Corner boxes */}
+          <View ref={box1Ref} style={[styles.box, styles.topLeft, { backgroundColor: '#e74c3c' }]}>
+            <Text style={styles.boxText}>Source 1</Text>
+          </View>
+
+          <View ref={box2Ref} style={[styles.box, styles.topRight, { backgroundColor: '#3498db' }]}>
+            <Text style={styles.boxText}>Source 2</Text>
+          </View>
+
+          <View ref={box3Ref} style={[styles.box, styles.bottomLeft, { backgroundColor: '#2ecc71' }]}>
+            <Text style={styles.boxText}>Source 3</Text>
+          </View>
+
+          <View ref={box4Ref} style={[styles.box, styles.bottomRight, { backgroundColor: '#9b59b6' }]}>
+            <Text style={styles.boxText}>Source 4</Text>
+          </View>
+
+          {/* Center target */}
+          <View ref={centerRef} style={[styles.centerBox]}>
+            <Text style={styles.centerText}>Processing Center</Text>
+          </View>
+
           {/* Render all lines */}
           {renderLines()}
-
-          {/* Demo elements */}
-          <View ref={box1Ref} style={[styles.box, styles.box1]}>
-            <Text style={styles.boxText}>Multi-Label</Text>
-            <Text style={styles.boxSubtext}>Start • Middle • End</Text>
-          </View>
-
-          <View ref={box2Ref} style={[styles.box, styles.box2]}>
-            <Text style={styles.boxText}>Advanced Plugs</Text>
-            <Text style={styles.boxSubtext}>Colors & Sizes</Text>
-          </View>
-
-          <View ref={box3Ref} style={[styles.box, styles.box3]}>
-            <Text style={styles.boxText}>Visual Effects</Text>
-            <Text style={styles.boxSubtext}>Glow & Shadow</Text>
-          </View>
-
-          <View ref={box4Ref} style={[styles.box, styles.box4]}>
-            <Text style={styles.boxText}>Dynamic Updates</Text>
-            <Text style={styles.boxSubtext}>setOptions()</Text>
-          </View>
         </View>
 
-        <View style={styles.info}>
-          <Text style={styles.infoTitle}>🚀 Funcionalidades Migradas</Text>
-          <Text style={styles.infoItem}>✅ setOptions() - Actualización eficiente</Text>
-          <Text style={styles.infoItem}>✅ Múltiples labels (start, middle, end)</Text>
-          <Text style={styles.infoItem}>✅ Plugs avanzados con colores y tamaños</Text>
-          <Text style={styles.infoItem}>✅ Sistema de eventos completo</Text>
-          <Text style={styles.infoItem}>✅ Animaciones avanzadas (bounce, elastic)</Text>
-          <Text style={styles.infoItem}>✅ Gestión de instancias</Text>
-          <Text style={styles.infoItem}>✅ Gradientes avanzados</Text>
-          <Text style={styles.infoItem}>✅ Efectos visuales (glow, outline)</Text>
-          <Text style={styles.infoItem}>✅ Attachments y anchors</Text>
-          <Text style={styles.infoItem}>✅ API idéntica a la original</Text>
+        <View style={styles.features}>
+          <Text style={styles.featuresTitle}>Featured Capabilities:</Text>
+          <Text style={styles.feature}>✅ Multiple label types (start, middle, end, caption, path)</Text>
+          <Text style={styles.feature}>✅ Dynamic property updates (color, size, plugs)</Text>
+          <Text style={styles.feature}>✅ Path types: straight, arc with curvature</Text>
+          <Text style={styles.feature}>✅ Advanced styling: outlines, shadows, gradients</Text>
+          <Text style={styles.feature}>✅ Animations: show/hide with effects</Text>
+          <Text style={styles.feature}>✅ Socket positioning and gravity</Text>
+          <Text style={styles.feature}>✅ Dashed lines with animation</Text>
+          <Text style={styles.feature}>✅ Custom plug types and sizes</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -237,105 +217,105 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
-    gap: 8,
+    paddingHorizontal: 20,
   },
   button: {
     backgroundColor: '#3498db',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
-    flex: 1,
+    minWidth: 80,
     alignItems: 'center',
   },
   buttonText: {
     color: 'white',
+    fontWeight: 'bold',
     fontSize: 14,
-    fontWeight: '600',
   },
   demoArea: {
     height: 400,
     backgroundColor: 'white',
-    borderRadius: 16,
+    borderRadius: 12,
     marginBottom: 20,
-    elevation: 4,
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  box: {
+    position: 'absolute',
+    width: 80,
+    height: 60,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    position: 'relative',
   },
-  box: {
+  topLeft: {
+    top: 30,
+    left: 30,
+  },
+  topRight: {
+    top: 30,
+    right: 30,
+  },
+  bottomLeft: {
+    bottom: 30,
+    left: 30,
+  },
+  bottomRight: {
+    bottom: 30,
+    right: 30,
+  },
+  centerBox: {
     position: 'absolute',
-    padding: 16,
-    backgroundColor: '#fff',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -60 }, { translateY: -40 }],
+    width: 120,
+    height: 80,
+    backgroundColor: '#f39c12',
     borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
+    alignItems: 'center',
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    minWidth: 100,
-    minHeight: 70,
-  },
-  box1: {
-    top: 30,
-    left: 20,
-    borderColor: '#e74c3c',
-    backgroundColor: '#fdf2f2',
-  },
-  box2: {
-    top: 30,
-    right: 20,
-    borderColor: '#3498db',
-    backgroundColor: '#ebf3fd',
-  },
-  box3: {
-    bottom: 80,
-    left: 20,
-    borderColor: '#9b59b6',
-    backgroundColor: '#f4f1f8',
-  },
-  box4: {
-    bottom: 80,
-    right: 20,
-    borderColor: '#f39c12',
-    backgroundColor: '#fef9e7',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   boxText: {
-    fontSize: 14,
+    color: 'white',
     fontWeight: 'bold',
-    color: '#2c3e50',
+    fontSize: 12,
     textAlign: 'center',
   },
-  boxSubtext: {
-    fontSize: 11,
-    color: '#7f8c8d',
+  centerText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
     textAlign: 'center',
-    marginTop: 4,
   },
-  info: {
+  features: {
     backgroundColor: 'white',
-    padding: 20,
+    padding: 16,
     borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
-  infoTitle: {
+  featuresTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
     color: '#2c3e50',
   },
-  infoItem: {
+  feature: {
     fontSize: 14,
     marginBottom: 6,
-    color: '#27ae60',
+    color: '#495057',
     lineHeight: 20,
   },
 });

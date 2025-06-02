@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/react-native-leader-line.svg)](https://badge.fury.io/js/react-native-leader-line)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.60+-blue.svg)](https://reactnative.dev/)
-[![LLM Optimized](https://img.shields.io/badge/LLM-Optimized-brightgreen.svg)](https://github.com/federicogarcia/react-native-leader-line)
+[![LLM Optimized](https://img.shields.io/badge/LLM-Optimized-brightgreen.svg)](https://github.com/puppetmaster886/react-native-leader-line)
 
 A React Native port of the popular [leader-line](https://github.com/anseki/leader-line) library for drawing arrow lines and connectors between UI components. This library brings the powerful line-drawing capabilities of leader-line to React Native applications, with additional fixes and enhancements from community forks.
 

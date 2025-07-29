@@ -1,12 +1,20 @@
 # React Native Leader Line - Expo Example
 
-This is an example app demonstrating the usage of `react-native-leader-line` library with Expo.
+This is a comprehensive example app demonstrating all features of the `react-native-leader-line` library with Expo.
 
 ## Features Demonstrated
 
-1. **Arc Path**: Curved connection between elements
-2. **Straight Path with Labels**: Direct line with start, middle, and end labels
-3. **Fixed Points**: Connection from an element to a fixed coordinate
+### Navigation Structure
+The app uses React Navigation to organize examples into separate screens:
+
+1. **Basic Connection**: Simple line connections with default settings
+2. **Path Types**: Different algorithms (straight, arc, fluid, magnet, grid)
+3. **Animations**: Dynamic updates and animated elements
+4. **Socket Positions**: Connection points (auto, center, top, right, bottom, left)
+5. **Labels**: Start, middle, and end labels with custom styling
+6. **Multiple Lines**: Managing many connections efficiently
+7. **Imperative API**: Dynamic line creation using the Manager pattern
+8. **Effects & Styling**: Outlines, shadows, plug types, and visual effects
 
 ## Running the Example
 

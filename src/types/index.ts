@@ -684,6 +684,8 @@ export interface LeaderLineProps extends LeaderLineOptions {
   start: Attachment;
   /** Ending attachment point (required) */
   end: Attachment;
+  /** Container ref to calculate proper coordinate offset for nested layouts */
+  containerRef?: React.RefObject<any>;
   /** Additional options object */
   options?: LeaderLineOptions;
   /** Child React components */
@@ -692,6 +694,10 @@ export interface LeaderLineProps extends LeaderLineOptions {
   style?: ViewStyle;
   /** Test identifier for testing frameworks */
   testID?: string;
+  /** Whether to optimize updates (default: true) */
+  optimizeUpdates?: boolean;
+  /** Minimum pixel change to trigger update (default: 5) */
+  updateThreshold?: number;
 }
 
 /**

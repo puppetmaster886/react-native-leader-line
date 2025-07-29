@@ -1,0 +1,53 @@
+{
+  "name": "react-native-leader-line-imperative-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Imperative API example for react-native-leader-line",
+  "main": "index.js",
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-native": "^0.75.0",
+    "react-native-svg": "^15.12.0",
+    "react-native-leader-line": "file:../../"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.0",
+    "@babel/preset-env": "^7.25.0",
+    "@babel/runtime": "^7.25.0",
+    "@react-native/babel-preset": "^0.75.0",
+    "@react-native/eslint-config": "^0.75.0",
+    "@react-native/metro-config": "^0.75.0",
+    "@react-native/typescript-config": "^0.75.0",
+    "@types/react": "^18.3.12",
+    "@types/react-test-renderer": "^18.3.0",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.0",
+    "react-test-renderer": "^18.3.1",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

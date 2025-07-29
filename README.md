@@ -2,8 +2,12 @@
 
 [![npm version](https://badge.fury.io/js/react-native-leader-line.svg)](https://badge.fury.io/js/react-native-leader-line)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
-[![React Native](https://img.shields.io/badge/React%20Native-0.60+-blue.svg)](https://reactnative.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.64+-blue.svg)](https://reactnative.dev/)
 [![LLM Optimized](https://img.shields.io/badge/LLM-Optimized-brightgreen.svg)](https://github.com/puppetmaster886/react-native-leader-line)
+[![Expo Snacks](https://img.shields.io/badge/Expo-Snacks%20Available-000020.svg)](https://snack.expo.dev)
+[![Live Demos](https://img.shields.io/badge/Live-Demos-ff69b4.svg)](https://snack.expo.dev)
+[![Test Coverage](https://img.shields.io/badge/Coverage-80%25+-green.svg)](https://github.com/puppetmaster886/react-native-leader-line)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A React Native port of the popular [leader-line](https://github.com/anseki/leader-line) library for drawing arrow lines and connectors between UI components. This library brings the powerful line-drawing capabilities of leader-line to React Native applications, with additional fixes and enhancements from community forks.
 
@@ -30,7 +34,7 @@ This library is specifically optimized for **Large Language Model (LLM) consumpt
 
 ## ✨ Features
 
-- 🎯 **Multiple API Styles**: Functional components, class-based API (like original), and hooks
+- 🎯 **Multiple API Styles**: Functional components, Hook-based API, Imperative API (leader-line compatible)
 - 🔄 **Dynamic Updates**: Change line properties in real-time
 - 🎨 **Rich Styling**: Colors, gradients, outlines, shadows, dash patterns
 - 📐 **Path Types**: Straight lines, arcs, and custom curvature
@@ -38,8 +42,10 @@ This library is specifically optimized for **Large Language Model (LLM) consumpt
 - 🏷️ **Multiple Labels**: Start, middle, end, caption, and path labels
 - ⚡ **Animations**: Show/hide effects with smooth transitions
 - 🎪 **Plug Types**: Arrows, discs, squares, and custom markers
-- 📱 **Mobile Optimized**: Performance tuned for React Native
+- 📱 **Mobile Optimized**: Performance tuned for React Native with React.memo
 - 🔧 **TypeScript**: Full type safety and IntelliSense support
+- 🔀 **Migration Ready**: Backward compatible with original leader-line API
+- ⚡ **Performance**: Optimized components with memoization and smart re-rendering
 
 ## 📦 Installation
 
@@ -87,6 +93,41 @@ const MyComponent = () => {
 };
 ```
 
+### Imperative API (leader-line compatibility)
+
+```tsx
+import { useLeaderLineCompatibility } from 'react-native-leader-line';
+
+const MyComponent = () => {
+  const { LeaderLine, LeaderLineContainer } = useLeaderLineCompatibility();
+  const startRef = useRef(null);
+  const endRef = useRef(null);
+
+  const createLine = () => {
+    // Same API as original leader-line!
+    const line = new LeaderLine(startRef, endRef, {
+      color: 'coral',
+      size: 4,  // legacy property supported
+      endPlug: 'arrow1'
+    });
+
+    // Imperative methods work the same
+    line.setOptions({ color: 'blue' });
+    line.hide();
+    setTimeout(() => line.show(), 1000);
+  };
+
+  return (
+    <View>
+      <View ref={startRef} style={{...}} />
+      <View ref={endRef} style={{...}} />
+      <LeaderLineContainer />
+      <Button onPress={createLine} title="Create Line" />
+    </View>
+  );
+};
+```
+
 ## 🎨 Advanced Styling
 
 ```tsx
@@ -125,31 +166,37 @@ const MyComponent = () => {
 />
 ```
 
-## 📚 Examples
+## 📚 Examples & Live Demos
 
-Check out the complete examples in the [`examples/`](./examples) directory:
+### 🎮 Interactive Expo Snacks
 
-### Basic Example
+Try react-native-leader-line directly in your browser with these interactive examples:
 
+| Demo | Description | Features |
+|------|-------------|----------|
+| [🎯 **Basic Demo**](https://snack.expo.dev/@your-username/react-native-leader-line-basic-demo) | Simple usage and core functionality | Basic connections, colors, socket positioning |
+| [🚀 **Advanced Features**](https://snack.expo.dev/@your-username/react-native-leader-line-advanced-demo) | Complex styling and effects | Path types, outlines, shadows, labels |
+| [⚡ **Imperative API**](https://snack.expo.dev/@your-username/react-native-leader-line-imperative-demo) | Programmatic control | Dynamic creation, batch operations |
+| [🎮 **Interactive Playground**](https://snack.expo.dev/@your-username/react-native-leader-line-playground) | Real-time property editor | Live adjustments, code generation |
+| [🏭 **Real-world Examples**](https://snack.expo.dev/@your-username/react-native-leader-line-real-world) | Production use cases | Workflows, networks, dashboards |
+
+### 📱 Local Examples
+
+For complete integration examples, check out the [`examples/`](./examples) directory:
+
+#### Basic Example
 Simple usage demonstrating core functionality:
-
 ```bash
-cd examples/basic
-npm install
-npm run android  # or npm run ios
+cd examples/basic && npm install && npm run android
 ```
 
-### Advanced Example
-
+#### Advanced Example  
 Comprehensive demos with all features:
-
 ```bash
-cd examples/advanced
-npm install
-npm run android  # or npm run ios
+cd examples/advanced && npm install && npm run android
 ```
 
-Both examples use the published npm package, so you can see exactly how to integrate the library in your own projects.
+Both examples use the published npm package, showing exactly how to integrate the library in your projects.
 
 ## 🤖 AI Assistant Integration
 
@@ -187,16 +234,16 @@ const props: LeaderLineProps = {
 
 ### LeaderLine Props
 
-| Prop          | Type             | Default      | Description                                            |
-| ------------- | ---------------- | ------------ | ------------------------------------------------------ |
-| `start`       | `Attachment`     | **required** | Starting attachment point                              |
-| `end`         | `Attachment`     | **required** | Ending attachment point                                |
-| `color`       | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                          |
-| `strokeWidth` | `number`         | `2`          | Line thickness in pixels                               |
-| `path`        | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`       |
-| `endPlug`     | `PlugType`       | `"arrow1"`   | End marker: `"none"`, `"arrow1"`, `"arrow2"`, `"disc"` |
-| `startSocket` | `SocketPosition` | `"center"`   | Connection point on start element                      |
-| `endSocket`   | `SocketPosition` | `"center"`   | Connection point on end element                        |
+| Prop          | Type             | Default      | Description                                                       |
+| ------------- | ---------------- | ------------ | ----------------------------------------------------------------- |
+| `start`       | `Attachment`     | **required** | Starting attachment point                                         |
+| `end`         | `Attachment`     | **required** | Ending attachment point                                           |
+| `color`       | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                                     |
+| `strokeWidth` | `number`         | `2`          | Line thickness in pixels                                          |
+| `path`        | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`. See `PathType`. |
+| `endPlug`     | `PlugType`       | `"arrow1"`   | End marker style. See `PlugType` definition.                      |
+| `startSocket` | `SocketPosition` | `"center"`   | Connection point on start element                                 |
+| `endSocket`   | `SocketPosition` | `"center"`   | Connection point on end element                                   |
 
 ### Socket Positions
 
@@ -230,8 +277,50 @@ type PlugType =
 ### Path Types
 
 ```typescript
-type PathType = "straight" | "arc";
+type PathType = "straight" | "arc" | "fluid";
 ```
+
+## 🔄 Migrating from leader-line
+
+Coming from the original [leader-line](https://github.com/anseki/leader-line) library? We've got you covered!
+
+### Quick Migration
+
+**Before (leader-line):**
+```javascript
+const line = new LeaderLine(
+  document.getElementById('start'),
+  document.getElementById('end'),
+  { color: 'coral', size: 4 }
+);
+```
+
+**After (react-native-leader-line):**
+```tsx
+// Option 1: Declarative (Recommended)
+<LeaderLine 
+  start={{ element: startRef }} 
+  end={{ element: endRef }}
+  color="coral" 
+  strokeWidth={4} 
+/>
+
+// Option 2: Imperative (Same API!)
+const { LeaderLine } = useLeaderLineCompatibility();
+const line = new LeaderLine(startRef, endRef, {
+  color: 'coral',
+  size: 4  // legacy property still works!
+});
+```
+
+### Compatibility Features
+
+- ✅ **Same API**: `new LeaderLine(start, end, options)`
+- ✅ **Same methods**: `show()`, `hide()`, `setOptions()`, `remove()`
+- ✅ **Same properties**: `color`, `size`, `path`, `endPlug`, etc.
+- ✅ **Legacy support**: `size` property works alongside `strokeWidth`
+
+👉 **[Full Migration Guide](./MIGRATION_GUIDE.md)** - Complete step-by-step migration instructions
 
 ## 🎯 Common Patterns
 
@@ -283,39 +372,97 @@ If you're an AI or working with LLMs to generate code using this library, check 
 - [`.llmconfig.js`](./.llmconfig.js) - Library metadata and configuration
 - Type definitions in [`src/types/index.ts`](./src/types/index.ts) - Complete TypeScript interfaces
 
-## 📝 Class-based API (Original Compatibility)
+## 📝 Hook-based API (Manager Pattern)
 
-For users migrating from the original leader-line library:
+For users who need to manage multiple lines programmatically:
 
 ```tsx
-import { useLeaderLineManager } from "react-native-leader-line";
+import React, { useEffect, useRef } from 'react';
+import { View } from 'react-native';
+import { useLeaderLineManager, LeaderLine } from "react-native-leader-line";
 
 const MyComponent = () => {
-  const { createLeaderLine, renderLines } = useLeaderLineManager();
+  const manager = useLeaderLineManager();
+  const startRef = useRef(null);
+  const endRef = useRef(null);
 
   useEffect(() => {
-    const line = createLeaderLine(startRef, endRef, {
+    // Create lines using the manager
+    const lineId = manager.createLine('my-line', {
+      start: { element: startRef },
+      end: { element: endRef },
       color: "red",
-      size: 3,
+      strokeWidth: 3,
       endPlug: "arrow2",
     });
 
-    // Dynamic updates (original API style)
-    line.color = "blue";
-    line.size = 5;
-    line.show("fade");
+    // Dynamic updates
+    setTimeout(() => {
+      manager.updateLine(lineId, { color: "blue", strokeWidth: 5 });
+    }, 1000);
 
-    return () => line.remove();
+    // Show/hide with opacity changes
+    setTimeout(() => {
+      manager.hideLine(lineId); // Sets opacity to 0
+      setTimeout(() => manager.showLine(lineId), 500); // Sets opacity to 1
+    }, 2000);
+
+    return () => manager.removeLine(lineId);
   }, []);
 
   return (
     <View>
-      <View ref={startRef} />
-      <View ref={endRef} />
-      {renderLines()}
+      <View ref={startRef} style={{...}} />
+      <View ref={endRef} style={{...}} />
+
+      {/* Render managed lines using functional components */}
+      {manager.lines.map((lineData) => (
+        <LeaderLine
+          key={lineData.id}
+          {...lineData.props}
+        />
+      ))}
     </View>
   );
 };
+```
+
+### useLeaderLineManager API
+
+The hook returns an object with the following methods and properties:
+
+#### Methods
+
+| Method       | Parameters                                       | Description                     |
+| ------------ | ------------------------------------------------ | ------------------------------- |
+| `createLine` | `(id: string, props?: Partial<LeaderLineProps>)` | Create a new line with given ID |
+| `addLine`    | `(id: string, props?: Partial<LeaderLineProps>)` | Alias for `createLine`          |
+| `updateLine` | `(id: string, props: Partial<LeaderLineProps>)`  | Update line properties          |
+| `removeLine` | `(id: string)`                                   | Remove a line by ID             |
+| `showLine`   | `(id: string)`                                   | Show a line (sets opacity to 1) |
+| `hideLine`   | `(id: string)`                                   | Hide a line (sets opacity to 0) |
+| `refreshAll` | `()`                                             | Force refresh all lines         |
+| `clear`      | `()`                                             | Remove all lines                |
+| `clearAll`   | `()`                                             | Alias for `clear`               |
+| `getLine`    | `(id: string)`                                   | Get line data by ID             |
+| `hasLine`    | `(id: string)`                                   | Check if line exists            |
+
+#### Properties
+
+| Property        | Type              | Description                  |
+| --------------- | ----------------- | ---------------------------- |
+| `lines`         | `Array<LineData>` | Array of all managed lines   |
+| `isInitialized` | `boolean`         | Whether the manager is ready |
+
+#### LineData Structure
+
+```tsx
+interface LineData {
+  id: string;
+  props: Partial<LeaderLineProps>;
+  isVisible: boolean;
+  lastUpdate: number;
+}
 ```
 
 ## 🤝 Contributing

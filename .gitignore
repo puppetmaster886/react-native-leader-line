@@ -38,3 +38,13 @@ test-reports/
 # Temporary folders
 tmp/
 temp/
+
+# Expo Snacks
+expo-snacks/**/node_modules/
+expo-snacks/**/package-lock.json
+expo-snacks/**/yarn.lock
+expo-snacks/**/.expo/
+expo-snacks/**/.expo-shared/
+expo-snacks/**/dist/
+expo-snacks/**/build/
+expo-snacks/**/*.log

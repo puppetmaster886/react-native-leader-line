@@ -17,6 +17,9 @@ import {
 import { areaAnchor, mouseHoverAnchor, pointAnchor } from "../utils/math";
 import { LeaderLine } from "./LeaderLine";
 
+// Memoized LeaderLine component for better performance
+const MemoizedLeaderLine = React.memo(LeaderLine);
+
 export class LeaderLineClass {
   private options: EnhancedLeaderLineOptions = {};
   private component: React.ComponentType<any> | null = null;
@@ -83,7 +86,7 @@ export class LeaderLineClass {
     // Extract start and end from options and pass them properly
     const { start, end, ...restOptions } = this.options;
 
-    return React.createElement(LeaderLine, {
+    return React.createElement(MemoizedLeaderLine, {
       start: start!,
       end: end!,
       ...restOptions,
@@ -293,7 +296,7 @@ export class LeaderLineClass {
   private _animate(effectName: AnimationType, animOptions?: AnimationOptions) {
     // In a real implementation, this would handle animations
     // For React Native, we might use Animated API or other animation libraries
-    const options = {
+    const _options = {
       duration: 300,
       ...animOptions,
     };

@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import * as React from "react";
+const { useMemo } = React;
 import { EnhancedLabelOptions, MultipleLabels, Point } from "../types";
 
 interface LabelRenderData {
@@ -15,14 +16,15 @@ export const useMultipleLabels = (
   endPoint: Point | null,
   labels: MultipleLabels
 ): { labelRenderData: LabelRenderData[] } => {
+  // Safety check for React hooks availability
+  if (!React || !useMemo) {
+    return { labelRenderData: [] };
+  }
+  
   const labelRenderData = useMemo(() => {
     if (!startPoint || !endPoint) return [];
 
     const renderData: LabelRenderData[] = [];
-    const distance = Math.sqrt(
-      Math.pow(endPoint.x - startPoint.x, 2) +
-        Math.pow(endPoint.y - startPoint.y, 2)
-    );
 
     // Helper function to normalize label config
     const normalizeLabel = (

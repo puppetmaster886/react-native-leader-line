@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BoundingBox, ElementLayout, Point, SocketPosition } from "../types";
 import { getSocketPoint, measureElement } from "../utils/math";
 
@@ -79,7 +79,6 @@ export const useLeaderLine = ({
         }
       }
     } catch (error) {
-      console.warn("Error calculating connection points:", error);
       setIsReady(false);
     }
   }, [startElement, endElement, startBox, endBox, startSocket, endSocket]);
@@ -110,10 +109,11 @@ export const useLeaderLine = ({
     };
   }, [startElement, endElement, observeChanges, updateConnectionPoints]);
 
-  return {
+  // Memoize return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     connectionPoints,
     isReady,
     updateConnectionPoints,
     calculateConnectionPoint,
-  };
+  }), [connectionPoints, isReady, updateConnectionPoints, calculateConnectionPoint]);
 };

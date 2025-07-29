@@ -50,21 +50,69 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
-import Svg, { Defs, Marker, Path, Text as SvgText } from "react-native-svg";
+import Svg, { Defs, Marker, Path, Rect, Text as SvgText } from "react-native-svg";
 import { useMultipleLabels } from "../hooks/useMultipleLabels";
 import { BoundingBox, LeaderLineProps, Point } from "../types";
 import {
   areaAnchor,
-  calculateConnectionPoints,
+  calculateConnectionPointsRelative,
   calculatePathBoundingBoxWithOutline,
   createEnhancedPlugPath,
   generateDashArray,
   generateEnhancedPathData,
+  getSocketPoint,
+  measureElementWithLayout,
   mouseHoverAnchor,
   normalizeOutlineOptions,
   normalizePlugOutlineOptions,
   pointAnchor,
 } from "../utils/math";
+
+/**
+ * Hook to force re-calculation when elements layout changes
+ */
+const useLayoutRecalculation = (
+  start: any,
+  end: any,
+  startSocket: any,
+  endSocket: any,
+  setStartPoint: any,
+  setEndPoint: any,
+  setElementsReady: any,
+  containerRef: any
+) => {
+  const recalculatePoints = useCallback(async () => {
+
+    if (start.element?.current && end.element?.current) {
+      try {
+        const points = await calculateConnectionPointsRelative(
+          start.element.current,
+          end.element.current,
+          startSocket,
+          endSocket,
+          containerRef
+        );
+        if (points) {
+          setStartPoint(points.start);
+          setEndPoint(points.end);
+          setElementsReady(true);
+        }
+      } catch (error) {
+      }
+    }
+  }, [
+    start,
+    end,
+    startSocket,
+    endSocket,
+    setStartPoint,
+    setEndPoint,
+    setElementsReady,
+    containerRef,
+  ]);
+
+  return recalculatePoints;
+};
 
 /**
  * @component LeaderLine
@@ -111,6 +159,9 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   start,
   end,
 
+  // Container configuration
+  containerRef,
+
   // Socket configuration
   startSocket = "center",
   endSocket = "center",
@@ -150,18 +201,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   // Animation properties
   animation,
   animationDuration = 300,
-  animationEasing,
   animationDelay = 0,
-  animationReverse = false,
   animationPaused = false,
-  animationRestart = false,
   animationLoop = false,
   animationLoopCount,
-  animationDirection = "right",
-  animationFromOpacity = 0,
-  animationToOpacity = 1,
-  animationBounceHeight = 10,
-  animationElasticity = 0.5,
 
   // Animation callbacks
   onAnimationStart,
@@ -185,8 +228,31 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     height: 300,
   });
 
+  // Track layout readiness
+  const [elementsReady, setElementsReady] = useState(false);
+
+  // Enhanced setElementsReady with logging
+  const setElementsReadyWithLog = useCallback(
+    (value: boolean) => {
+      setElementsReady(value);
+    },
+    [elementsReady, testID]
+  );
+
+  // Hook for layout-triggered recalculation
+  useLayoutRecalculation(
+    start,
+    end,
+    startSocket,
+    endSocket,
+    setStartPoint,
+    setEndPoint,
+    setElementsReadyWithLog,
+    containerRef
+  );
+
   // Animation state
-  const [animationState, setAnimationState] = useState<{
+  const [, setAnimationState] = useState<{
     isAnimating: boolean;
     currentIteration: number;
   }>({
@@ -286,7 +352,6 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     animationPaused,
     animationLoop,
     animationLoopCount,
-    animationRestart,
     handleAnimationStart,
     handleAnimationEnd,
     handleAnimationIteration,
@@ -299,33 +364,154 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   useEffect(() => {
     const calculatePoints = async () => {
       try {
+
         if (start.element?.current && end.element?.current) {
           // Both are React elements - measure them and calculate connection points
-          const points = await calculateConnectionPoints(
+          // Try the new relative method first
+          const points = await calculateConnectionPointsRelative(
             start.element.current,
             end.element.current,
             startSocket,
-            endSocket
+            endSocket,
+            containerRef
           );
           if (points) {
             setStartPoint(points.start);
             setEndPoint(points.end);
+            setElementsReadyWithLog(true);
+          } else {
+            setElementsReadyWithLog(false);
+          }
+        } else if (start.element?.current && end.point) {
+
+          if (containerRef?.current) {
+            // Points are relative to container (like original leader-line)
+
+            // Get element coordinates relative to container using measureLayout
+            const elementPromise = new Promise<Point | null>((resolve) => {
+              start.element!.current.measureLayout(
+                containerRef.current,
+                (x: number, y: number, width: number, height: number) => {
+                  const layout = {
+                    x: 0,
+                    y: 0,
+                    width,
+                    height,
+                    pageX: x,
+                    pageY: y,
+                    timestamp: Date.now(),
+                  };
+                  const socketPoint = getSocketPoint(layout, startSocket);
+                  resolve(socketPoint);
+                },
+                () => {
+                  resolve(null);
+                }
+              );
+            });
+
+            // Point is already relative to container (no conversion needed)
+            const relativeStartPoint = await elementPromise;
+
+            if (relativeStartPoint) {
+              setStartPoint(relativeStartPoint);
+              setEndPoint(end.point);
+              setElementsReadyWithLog(true);
+            } else {
+              setElementsReadyWithLog(false);
+            }
+          } else {
+            // No container: points are absolute coordinates (legacy behavior)
+            const startLayout = await measureElementWithLayout(start.element);
+            if (startLayout) {
+              const rawStartPoint = getSocketPoint(startLayout, startSocket);
+              setStartPoint(rawStartPoint);
+              setEndPoint(end.point);
+              setElementsReadyWithLog(true);
+            } else {
+              setElementsReadyWithLog(false);
+            }
+          }
+        } else if (start.point && end.element?.current) {
+
+          if (containerRef?.current) {
+            // Points are relative to container (like original leader-line)
+
+            // Get element coordinates relative to container using measureLayout
+            const elementPromise = new Promise<Point | null>((resolve) => {
+              end.element!.current.measureLayout(
+                containerRef.current,
+                (x: number, y: number, width: number, height: number) => {
+                  const layout = {
+                    x: 0,
+                    y: 0,
+                    width,
+                    height,
+                    pageX: x,
+                    pageY: y,
+                    timestamp: Date.now(),
+                  };
+                  const socketPoint = getSocketPoint(layout, endSocket);
+                  resolve(socketPoint);
+                },
+                () => {
+                  resolve(null);
+                }
+              );
+            });
+
+            // Point is already relative to container (no conversion needed)
+            const relativeEndPoint = await elementPromise;
+
+            if (relativeEndPoint) {
+              setStartPoint(start.point);
+              setEndPoint(relativeEndPoint);
+              setElementsReadyWithLog(true);
+            } else {
+              setElementsReadyWithLog(false);
+            }
+          } else {
+            // No container: points are absolute coordinates (legacy behavior)
+            const endLayout = await measureElementWithLayout(end.element);
+            if (endLayout) {
+              const rawEndPoint = getSocketPoint(endLayout, endSocket);
+              setStartPoint(start.point);
+              setEndPoint(rawEndPoint);
+              setElementsReadyWithLog(true);
+            } else {
+              setElementsReadyWithLog(false);
+            }
           }
         } else if (start.point && end.point) {
-          // Both are fixed points - use them directly
-          setStartPoint(start.point);
-          setEndPoint(end.point);
+
+          if (containerRef?.current) {
+            // Points are already relative to container (leader-line compatible)
+
+
+            setStartPoint(start.point);
+            setEndPoint(end.point);
+          } else {
+            // Use absolute coordinates
+            setStartPoint(start.point);
+            setEndPoint(end.point);
+          }
+
+          setElementsReadyWithLog(true);
+        } else {
+          setElementsReadyWithLog(false);
         }
       } catch (error) {
-        console.warn(
-          "LeaderLine: Failed to calculate connection points:",
-          error
-        );
+        setElementsReadyWithLog(false);
       }
     };
 
-    calculatePoints();
-  }, [start, end, startSocket, endSocket]);
+    // Add a delay to ensure elements are laid out first
+    const timer = setTimeout(() => {
+      calculatePoints();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [start, end, startSocket, endSocket, containerRef]);
 
   /**
    * @description Prepare labels configuration for multi-label support
@@ -352,9 +538,11 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
    * This ensures the SVG container is large enough to contain the entire line
    */
   useEffect(() => {
+
     if (startPoint && endPoint) {
       const pathType = typeof path === "string" ? path : path.type;
       const normalizedMainOutline = normalizeOutlineOptions(outline);
+
 
       const newBounds = calculatePathBoundingBoxWithOutline(
         startPoint,
@@ -365,15 +553,44 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
         normalizedMainOutline
       );
 
-      // Add padding to prevent clipping
+      // Add padding to prevent clipping and ensure positive positioning
       const padding = 20;
-      setSvgBounds({
-        x: newBounds.x - padding,
-        y: newBounds.y - padding,
-        width: newBounds.width + padding * 2,
-        height: newBounds.height + padding * 2,
-      });
+      const rawX = newBounds.x - padding;
+      const rawY = newBounds.y - padding;
+
+      const finalBounds = {
+        x: Math.max(0, rawX), // Ensure SVG is never positioned negatively
+        y: Math.max(0, rawY), // Ensure SVG is never positioned negatively
+        width: newBounds.width + padding * 2 + Math.max(0, -rawX), // Adjust width if x was clamped
+        height: newBounds.height + padding * 2 + Math.max(0, -rawY), // Adjust height if y was clamped
+      };
+
+      setSvgBounds(finalBounds);
+    } else {
     }
+  }, [startPoint, endPoint, path, curvature, strokeWidth, outline]);
+
+  /**
+   * @description Calculate coordinate offset for SVG positioning
+   * Memoized to avoid recalculation
+   */
+  const coordinateOffset = useMemo(() => {
+    if (!startPoint || !endPoint) return { x: 0, y: 0 };
+
+    const padding = 20;
+    const originalBounds = calculatePathBoundingBoxWithOutline(
+      startPoint,
+      endPoint,
+      typeof path === "string" ? path : path.type,
+      curvature,
+      strokeWidth,
+      normalizeOutlineOptions(outline)
+    );
+
+    return {
+      x: originalBounds.x - padding,
+      y: originalBounds.y - padding,
+    };
   }, [startPoint, endPoint, path, curvature, strokeWidth, outline]);
 
   /**
@@ -382,8 +599,25 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
    */
   const pathData = useMemo(() => {
     if (!startPoint || !endPoint) return "";
-    return generateEnhancedPathData(startPoint, endPoint, path, curvature);
-  }, [startPoint, endPoint, path, curvature]);
+
+    // Adjust coordinates relative to SVG bounds to handle negative positioning
+    const adjustedStart = {
+      x: startPoint.x - coordinateOffset.x,
+      y: startPoint.y - coordinateOffset.y,
+    };
+    const adjustedEnd = {
+      x: endPoint.x - coordinateOffset.x,
+      y: endPoint.y - coordinateOffset.y,
+    };
+
+
+    return generateEnhancedPathData(
+      adjustedStart,
+      adjustedEnd,
+      path,
+      curvature
+    );
+  }, [startPoint, endPoint, path, curvature, coordinateOffset, testID]);
 
   /**
    * @description Normalize outline options with default values
@@ -453,8 +687,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
 
     const labelConfig = typeof label === "string" ? { text: label } : label;
     const midPoint = {
-      x: (startPoint.x + endPoint.x) / 2,
-      y: (startPoint.y + endPoint.y) / 2,
+      x: (startPoint.x + endPoint.x) / 2 - coordinateOffset.x,
+      y: (startPoint.y + endPoint.y) / 2 - coordinateOffset.y,
     };
 
     return (
@@ -470,7 +704,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
         {labelConfig.text}
       </SvgText>
     );
-  }, [label, startPoint, endPoint]);
+  }, [label, startPoint, endPoint, coordinateOffset]);
 
   /**
    * @description Render multiple enhanced labels as React Native Views
@@ -507,29 +741,66 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     });
   }, [labelRenderData]);
 
+  // Log current state on every render
+
   // Early return if no connection points are available
-  if (!startPoint || !endPoint) {
+  if (!startPoint || !endPoint || !elementsReady) {
     return (
-      <View style={[{ position: "absolute" }, style]} testID={testID}>
+      <View
+        style={[{ 
+        position: "relative", 
+        zIndex: 999999,
+        backgroundColor: "rgba(0, 0, 255, 0.3)", // BLUE background to see the View container
+        borderWidth: 3,
+        borderColor: "rgba(255, 0, 255, 0.8)", // MAGENTA border for View container
+        minWidth: 50,
+        minHeight: 50
+      }, style]}
+        testID={testID}
+      >
         {children}
       </View>
     );
   }
 
+
+  // Log the path data being generated
+
+
+  // Log coordinate system analysis
+
   return (
-    <View style={[{ position: "absolute" }, style]} testID={testID}>
+    <View
+      style={[{ 
+        position: "relative", 
+        zIndex: 999999,
+        backgroundColor: "rgba(0, 0, 255, 0.3)", // BLUE background to see the View container
+        borderWidth: 3,
+        borderColor: "rgba(255, 0, 255, 0.8)", // MAGENTA border for View container
+        minWidth: 50,
+        minHeight: 50
+      }, style]}
+      testID={testID}
+      onLayout={(event) => {
+      }}
+    >
       <Svg
         width={svgBounds.width}
         height={svgBounds.height}
         style={{
           position: "absolute",
-          left: svgBounds.x,
-          top: svgBounds.y,
+          left: 0,    // FORCED POSITION FOR TESTING
+          top: 0,     // FORCED POSITION FOR TESTING
+          backgroundColor: "rgba(255, 0, 0, 0.2)", // Semi-transparent red background for debugging
+          borderWidth: 2,
+          borderColor: "rgba(0, 255, 0, 0.8)", // Green border for debugging
         }}
         testID="svg"
         accessibilityLabel="Leader line connection"
         accessibilityRole="image"
         accessibilityHint="Visual connection between UI elements"
+        onLayout={(event) => {
+        }}
       >
         <Defs>
           {/* Start plug marker definition */}
@@ -591,6 +862,18 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           )}
         </Defs>
 
+        {/* Debug background rectangle */}
+        <Rect
+          x="0"
+          y="0"
+          width={svgBounds.width}
+          height={svgBounds.height}
+          fill="rgba(255, 255, 0, 0.1)"
+          stroke="rgba(0, 0, 255, 0.5)"
+          strokeWidth="1"
+          strokeDasharray="5,5"
+        />
+
         {/* Drop shadow layer */}
         {renderDropShadow()}
 
@@ -636,8 +919,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           <Path
             d={createEnhancedPlugPath("square", startPlugSize)}
             fill={startPlugColor || color}
-            transform={`translate(${startPoint.x}, ${
-              startPoint.y - startPlugSize / 2
+            transform={`translate(${startPoint.x - coordinateOffset.x}, ${
+              startPoint.y - coordinateOffset.y - startPlugSize / 2
             })`}
           />
         )}
@@ -646,9 +929,9 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           <Path
             d={createEnhancedPlugPath("square", endPlugSize)}
             fill={endPlugColor || color}
-            transform={`translate(${endPoint.x - endPlugSize}, ${
-              endPoint.y - endPlugSize / 2
-            })`}
+            transform={`translate(${
+              endPoint.x - coordinateOffset.x - endPlugSize
+            }, ${endPoint.y - coordinateOffset.y - endPlugSize / 2})`}
           />
         )}
 

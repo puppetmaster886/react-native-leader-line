@@ -774,7 +774,6 @@ describe("Error Handling and Edge Cases", () => {
                   throw new Error("Async measurement failed");
                 } catch (error) {
                   // Simulate async error that doesn't crash the component
-                  console.warn("Measurement failed:", error);
                 }
               }, 50);
             });

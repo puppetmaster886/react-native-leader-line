@@ -222,7 +222,6 @@ describe("Integration Tests", () => {
               setInitialized(true);
             } catch (error) {
               // Safely handle potential errors
-              console.warn("Failed to initialize lines:", error);
             }
           }
         }, [manager, initialized]);
@@ -232,7 +231,6 @@ describe("Integration Tests", () => {
             manager.clearAll();
             setInitialized(false);
           } catch (error) {
-            console.warn("Failed to clear lines:", error);
           }
         }, [manager]);
 

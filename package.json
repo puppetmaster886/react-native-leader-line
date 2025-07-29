@@ -6,6 +6,15 @@
     "apps/*"
   ],
   "scripts": {
-    "bootstrap": "yarn install"
+    "bootstrap": "yarn install",
+    "build": "yarn workspace react-native-leader-line build",
+    "test": "yarn workspace react-native-leader-line test",
+    "test:watch": "yarn workspace react-native-leader-line test:watch",
+    "test:coverage": "yarn workspace react-native-leader-line test:coverage",
+    "lint": "yarn workspace react-native-leader-line lint",
+    "lint:fix": "yarn workspace react-native-leader-line lint:fix"
+  },
+  "resolutions": {
+    "@types/react": "18.2.0"
   }
 }

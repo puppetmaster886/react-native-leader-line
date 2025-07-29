@@ -241,9 +241,9 @@ export function useImperativeLeaderLine(): UseImperativeLeaderLineReturn {
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
-          pointerEvents: 'none'
-        },
+          bottom: 0
+        } as any,
+        pointerEvents: 'none',
         key: 'leader-line-container'
       },
       ...lineComponents

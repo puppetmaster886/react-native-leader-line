@@ -20,7 +20,6 @@
     "outDir": "./lib",
     "rootDir": "./src",
     "typeRoots": ["./node_modules/@types"],
-    "types": ["jest"],
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,

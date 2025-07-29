@@ -1,169 +1,108 @@
-// Enhanced Jest setup to fix React component test issues
-import "@testing-library/jest-native/extend-expect";
+// Jest setup for React Native Leader Line
 
-// Add setImmediate polyfill for Node.js environments
-if (!global.setImmediate) {
-  global.setImmediate = (callback, ...args) => {
-    return setTimeout(callback, 0, ...args);
-  };
-}
+// Import testing library extensions
+import '@testing-library/jest-native/extend-expect';
 
-if (!global.clearImmediate) {
-  global.clearImmediate = (id) => {
-    return clearTimeout(id);
-  };
-}
-
-// Mock react-native with better async handling
-jest.mock("react-native", () => ({
-  View: "View",
-  Text: "Text",
-  ScrollView: "ScrollView",
-  StyleSheet: {
-    create: jest.fn((styles) => styles),
-    flatten: jest.fn((style) => {
-      if (Array.isArray(style)) {
-        return style.reduce((acc, s) => ({ ...acc, ...s }), {});
-      }
-      return style || {};
-    }),
-  },
-  Animated: {
-    Value: jest.fn(() => ({
-      setValue: jest.fn(),
-      interpolate: jest.fn(() => ({ _value: 0 })),
-    })),
-    timing: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-    spring: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-    parallel: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-    sequence: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-  },
-  Easing: {
-    linear: jest.fn(),
-    ease: jest.fn(),
-    quad: jest.fn(),
-    bounce: jest.fn(),
-    in: jest.fn(() => jest.fn()),
-    out: jest.fn(() => jest.fn()),
-  },
-  Dimensions: {
-    get: () => ({ width: 375, height: 812 }),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-  },
-  Platform: {
-    OS: "ios",
-    select: (obj) => obj.ios,
-  },
-  findNodeHandle: jest.fn(() => 1),
-}));
-
-// Mock react-native-svg with proper React elements
-jest.mock("react-native-svg", () => {
-  const React = require("react");
-
-  const createMockSvgComponent = (name) => {
-    const Component = React.forwardRef((props, ref) => {
-      return React.createElement("MockSvg" + name, {
+// Mock react-native-svg
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  
+  const createMockComponent = (name) => {
+    return React.forwardRef((props, ref) => {
+      return React.createElement(View, {
         ...props,
         ref,
-        testID: props.testID || `mock-${name.toLowerCase()}`,
+        testID: props.testID || `svg-${name}`,
       });
     });
-    Component.displayName = `Mock${name}`;
-    return Component;
   };
-
+  
+  const Svg = createMockComponent('Svg');
+  
+  // Add all SVG components as static properties
+  Svg.Path = createMockComponent('Path');
+  Svg.Defs = createMockComponent('Defs');
+  Svg.Marker = createMockComponent('Marker');
+  Svg.Text = createMockComponent('Text');
+  Svg.Circle = createMockComponent('Circle');
+  Svg.Rect = createMockComponent('Rect');
+  Svg.Line = createMockComponent('Line');
+  Svg.G = createMockComponent('G');
+  
   return {
     __esModule: true,
-    default: createMockSvgComponent("Svg"),
-    Svg: createMockSvgComponent("Svg"),
-    Path: createMockSvgComponent("Path"),
-    Defs: createMockSvgComponent("Defs"),
-    Marker: createMockSvgComponent("Marker"),
-    Text: createMockSvgComponent("Text"),
-    Circle: createMockSvgComponent("Circle"),
-    Rect: createMockSvgComponent("Rect"),
-    Line: createMockSvgComponent("Line"),
-    G: createMockSvgComponent("G"),
+    default: Svg,
+    Svg,
+    Path: Svg.Path,
+    Defs: Svg.Defs,
+    Marker: Svg.Marker,
+    Text: Svg.Text,
+    Circle: Svg.Circle,
+    Rect: Svg.Rect,
+    Line: Svg.Line,
+    G: Svg.G,
   };
 });
 
-// Enhanced ref mocking with immediate callbacks
+// Helper to create mock refs with measurement functions
 global.createMockRef = (measurements = {}) => ({
   current: {
+    measureInWindow: jest.fn((callback) => {
+      callback(
+        measurements.pageX ?? 100,
+        measurements.pageY ?? 100,
+        measurements.width ?? 100,
+        measurements.height ?? 50
+      );
+    }),
+    measureLayout: jest.fn((relativeToNativeNode, onSuccess, onFail) => {
+      onSuccess(
+        measurements.x ?? 10,
+        measurements.y ?? 10,
+        measurements.width ?? 100,
+        measurements.height ?? 50
+      );
+    }),
     measure: jest.fn((callback) => {
-      // Call synchronously in test environment to avoid timer issues
-      // Use proper nullish coalescing to handle 0 values correctly
       callback(
         measurements.x ?? 0,
         measurements.y ?? 0,
         measurements.width ?? 100,
         measurements.height ?? 50,
         measurements.pageX ?? 100,
-        measurements.pageY ?? 50
+        measurements.pageY ?? 100
       );
     }),
   },
 });
 
-// Mock timers to prevent hanging
-jest.useFakeTimers();
+// Silence specific warnings
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
 
-// Mock console to reduce noise but keep errors
-global.originalConsoleError = console.error;
-global.originalConsoleWarn = console.warn;
-
-console.warn = jest.fn((message) => {
-  // Only show non-React warnings
+console.warn = jest.fn((...args) => {
+  const message = args[0];
   if (
-    typeof message === "string" &&
-    !message.includes("React") &&
-    !message.includes("Warning:")
+    typeof message === 'string' &&
+    message.includes('Warning:') &&
+    (message.includes('React.jsx') || message.includes('LEADER_LINE_DEBUG'))
   ) {
-    global.originalConsoleWarn(message);
+    return;
   }
+  originalConsoleWarn(...args);
 });
 
-console.error = jest.fn((message) => {
-  // Only show actual errors, not React warnings
+console.error = jest.fn((...args) => {
+  const message = args[0];
   if (
-    typeof message === "string" &&
-    !message.includes("Warning:") &&
-    !message.includes("React.jsx")
+    typeof message === 'string' &&
+    (message.includes('Warning:') ||
+     message.includes('React.jsx') ||
+     message.includes('LEADER_LINE_DEBUG') ||
+     message.includes('react-test-renderer'))
   ) {
-    global.originalConsoleError(message);
+    return;
   }
+  originalConsoleError(...args);
 });
-
-// Override setInterval/setTimeout to be synchronous in tests
-const originalSetInterval = global.setInterval;
-const originalClearInterval = global.clearInterval;
-
-global.setInterval = jest.fn((callback, delay) => {
-  // In tests, don't actually set intervals that could cause hanging
-  return 123; // Mock interval ID
-});
-
-global.clearInterval = jest.fn((intervalId) => {
-  // Mock clear interval
-});
-
-// Cleanup function for tests
-global.setupTestCleanup = () => {
-  jest.clearAllMocks();
-  jest.clearAllTimers();
-};
-
-global.teardownTestCleanup = () => {
-  jest.runOnlyPendingTimers();
-  jest.useRealTimers();
-};

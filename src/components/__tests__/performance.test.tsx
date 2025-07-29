@@ -8,20 +8,7 @@ import { LeaderLine } from "../LeaderLine";
  * @description Simplified performance testing without complex animations
  */
 
-// Mock react-native modules for performance testing
-jest.mock("react-native", () => ({
-  ...jest.requireActual("react-native"),
-  PixelRatio: {
-    get: jest.fn(() => 2),
-  },
-  Platform: {
-    OS: "ios",
-    select: jest.fn((obj) => obj.ios || obj.default),
-  },
-  Dimensions: {
-    get: jest.fn(() => ({ width: 375, height: 667, scale: 2, fontScale: 1 })),
-  },
-}));
+// Performance test file - mocks are handled by jest.setup.js and __mocks__/react-native.js
 
 describe("LeaderLine Performance Tests", () => {
   beforeEach(() => {

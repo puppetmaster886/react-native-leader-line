@@ -1,20 +1,6 @@
 module.exports = {
-  presets: [
-    ["@babel/preset-env", { targets: { node: "current" } }],
-    "@babel/preset-typescript",
-    ["@babel/preset-react", { runtime: "automatic" }],
-  ],
+  presets: ['module:@react-native/babel-preset'],
   plugins: [
-    "@babel/plugin-proposal-class-properties",
     "@babel/plugin-transform-runtime",
   ],
-  env: {
-    test: {
-      presets: [
-        ["@babel/preset-env", { targets: { node: "current" } }],
-        "@babel/preset-typescript",
-        ["@babel/preset-react", { runtime: "automatic" }],
-      ],
-    },
-  },
 };

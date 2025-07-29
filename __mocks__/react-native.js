@@ -1,73 +1,159 @@
-// Mock for react-native in tests
-const React = require("react");
+const React = require('react');
 
-const createMockComponent = (name) => {
-  const MockComponent = React.forwardRef((props, ref) => {
-    return React.createElement(name.toLowerCase(), {
-      ...props,
-      ref,
-      "data-testid": props.testID,
-    });
-  });
-  MockComponent.displayName = `Mock${name}`;
-  return MockComponent;
-};
+// Create base View component with all measurement methods
+const View = React.forwardRef((props, ref) => {
+  const divRef = React.useRef(null);
+  
+  React.useImperativeHandle(ref, () => ({
+    measureInWindow: jest.fn((callback) => {
+      callback(100, 100, 100, 50);
+    }),
+    measureLayout: jest.fn((relativeToNativeNode, onSuccess, onFail) => {
+      onSuccess(10, 10, 100, 50);
+    }),
+    measure: jest.fn((callback) => {
+      callback(0, 0, 100, 50, 100, 100);
+    }),
+    ...divRef.current,
+  }));
+  
+  return React.createElement('div', { ...props, ref: divRef });
+});
 
-const ReactNative = {
-  View: createMockComponent("View"),
-  Text: createMockComponent("Text"),
-  TouchableOpacity: createMockComponent("TouchableOpacity"),
-  Pressable: createMockComponent("Pressable"),
+View.displayName = 'View';
+
+// Create other common React Native components
+const Text = React.forwardRef((props, ref) => 
+  React.createElement('span', { ...props, ref })
+);
+Text.displayName = 'Text';
+
+const ScrollView = React.forwardRef((props, ref) => 
+  React.createElement('div', { ...props, ref })
+);
+ScrollView.displayName = 'ScrollView';
+
+const TouchableOpacity = React.forwardRef((props, ref) => 
+  React.createElement('div', { ...props, ref, onClick: props.onPress })
+);
+TouchableOpacity.displayName = 'TouchableOpacity';
+
+const TouchableWithoutFeedback = React.forwardRef((props, ref) => 
+  React.createElement('div', { ...props, ref, onClick: props.onPress })
+);
+TouchableWithoutFeedback.displayName = 'TouchableWithoutFeedback';
+
+const Image = React.forwardRef((props, ref) => 
+  React.createElement('img', { ...props, ref })
+);
+Image.displayName = 'Image';
+
+// Export all mocked components and utilities
+module.exports = {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Image,
+  StyleSheet: {
+    create: (styles) => styles,
+    flatten: (style) => style,
+    compose: (style1, style2) => (style1 && style2 ? [style1, style2] : style1 || style2),
+    hairlineWidth: 1,
+    absoluteFillObject: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+    },
+  },
+  Platform: {
+    OS: 'ios',
+    Version: '14.0',
+    isPad: false,
+    isTVOS: false,
+    isTV: false,
+    select: (obj) => obj.ios || obj.default,
+  },
   Dimensions: {
-    get: jest.fn(() => ({ width: 375, height: 812 })),
+    get: (dim) => {
+      const dimensions = {
+        window: { width: 375, height: 812, scale: 2, fontScale: 1 },
+        screen: { width: 375, height: 812, scale: 2, fontScale: 1 },
+      };
+      return dimensions[dim] || dimensions.window;
+    },
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
   },
   PixelRatio: {
-    get: jest.fn(() => 2),
+    get: () => 2,
+    getFontScale: () => 1,
+    getPixelSizeForLayoutSize: (size) => size * 2,
+    roundToNearestPixel: (size) => Math.round(size * 2) / 2,
   },
-  Platform: {
-    OS: "ios",
-    select: jest.fn((obj) => obj.ios),
-  },
-  StyleSheet: {
-    create: jest.fn((styles) => styles),
-    flatten: jest.fn((style) => {
-      if (Array.isArray(style)) {
-        return style.reduce((acc, s) => ({ ...acc, ...s }), {});
-      }
-      return style || {};
-    }),
+  Alert: {
+    alert: jest.fn(),
   },
   Animated: {
-    Value: jest.fn().mockImplementation(() => ({
+    View,
+    Text,
+    ScrollView,
+    Image,
+    Value: jest.fn(() => ({
       setValue: jest.fn(),
+      setOffset: jest.fn(),
+      flattenOffset: jest.fn(),
+      extractOffset: jest.fn(),
       addListener: jest.fn(),
       removeListener: jest.fn(),
-      interpolate: jest.fn(() => "interpolated"),
+      removeAllListeners: jest.fn(),
+      stopAnimation: jest.fn(),
+      resetAnimation: jest.fn(),
+      interpolate: jest.fn(),
+      animate: jest.fn(),
     })),
-    timing: jest.fn().mockImplementation(() => ({
-      start: jest.fn((callback) => callback && callback()),
+    ValueXY: jest.fn(() => ({
+      setValue: jest.fn(),
+      setOffset: jest.fn(),
+      flattenOffset: jest.fn(),
+      extractOffset: jest.fn(),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      removeAllListeners: jest.fn(),
+      stopAnimation: jest.fn(),
+      resetAnimation: jest.fn(),
+      getLayout: jest.fn(),
+      getTranslateTransform: jest.fn(),
     })),
-    spring: jest.fn().mockImplementation(() => ({
-      start: jest.fn((callback) => callback && callback()),
+    timing: jest.fn(() => ({
+      start: jest.fn((callback) => callback && callback({ finished: true })),
+      stop: jest.fn(),
+      reset: jest.fn(),
     })),
-    parallel: jest.fn().mockImplementation(() => ({
-      start: jest.fn((callback) => callback && callback()),
+    spring: jest.fn(() => ({
+      start: jest.fn((callback) => callback && callback({ finished: true })),
+      stop: jest.fn(),
+      reset: jest.fn(),
     })),
-    sequence: jest.fn().mockImplementation(() => ({
-      start: jest.fn((callback) => callback && callback()),
+    decay: jest.fn(() => ({
+      start: jest.fn((callback) => callback && callback({ finished: true })),
+      stop: jest.fn(),
+      reset: jest.fn(),
     })),
-    loop: jest.fn().mockImplementation(() => ({
-      start: jest.fn(),
+    parallel: jest.fn(() => ({
+      start: jest.fn((callback) => callback && callback({ finished: true })),
+      stop: jest.fn(),
+      reset: jest.fn(),
     })),
+    sequence: jest.fn(() => ({
+      start: jest.fn((callback) => callback && callback({ finished: true })),
+      stop: jest.fn(),
+      reset: jest.fn(),
+    })),
+    event: jest.fn(),
+    createAnimatedComponent: jest.fn((component) => component),
   },
-  Easing: {
-    linear: jest.fn(),
-    ease: jest.fn(),
-    inOut: jest.fn(),
-  },
-  findNodeHandle: jest.fn(() => 1),
 };
-
-module.exports = ReactNative;

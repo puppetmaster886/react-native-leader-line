@@ -12,7 +12,11 @@
     "test:watch": "yarn workspace react-native-leader-line test:watch",
     "test:coverage": "yarn workspace react-native-leader-line test:coverage",
     "lint": "yarn workspace react-native-leader-line lint",
-    "lint:fix": "yarn workspace react-native-leader-line lint:fix"
+    "lint:fix": "yarn workspace react-native-leader-line lint:fix",
+    "expo": "yarn workspace expo-example start",
+    "bare:start": "yarn workspace bare-example start",
+    "bare:android": "yarn workspace bare-example android",
+    "bare:ios": "yarn workspace bare-example ios"
   },
   "resolutions": {
     "@types/react": "18.2.0"

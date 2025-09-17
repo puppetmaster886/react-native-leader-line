@@ -1,168 +1,79 @@
-import React from 'react';
+const React = require('react');
 
-// Helper to create a mock component
-const createComponent = (name) => {
+const createMockComponent = (name) => {
   const Component = React.forwardRef((props, ref) => {
-    // If ref is provided, add measurement methods
-    if (ref) {
-      if (typeof ref === 'function') {
-        ref({
-          measureInWindow: jest.fn((callback) => {
-            callback(100, 100, 100, 50);
-          }),
-          measureLayout: jest.fn((relativeToNativeNode, onSuccess, onFail) => {
-            onSuccess(10, 10, 100, 50);
-          }),
-          measure: jest.fn((callback) => {
-            callback(0, 0, 100, 50, 100, 100);
-          }),
-        });
-      } else if (ref && typeof ref === 'object' && 'current' in ref) {
-        ref.current = {
-          measureInWindow: jest.fn((callback) => {
-            callback(100, 100, 100, 50);
-          }),
-          measureLayout: jest.fn((relativeToNativeNode, onSuccess, onFail) => {
-            onSuccess(10, 10, 100, 50);
-          }),
-          measure: jest.fn((callback) => {
-            callback(0, 0, 100, 50, 100, 100);
-          }),
-        };
-      }
-    }
-    
-    return React.createElement(name.toLowerCase(), props, props.children);
+    return React.createElement('View', props); // Always return a View
   });
-  
   Component.displayName = name;
   return Component;
 };
 
-// Create all React Native components
-const View = createComponent('View');
-const Text = createComponent('Text');
-const ScrollView = createComponent('ScrollView');
-const TouchableOpacity = createComponent('TouchableOpacity');
-const TouchableWithoutFeedback = createComponent('TouchableWithoutFeedback');
-const Image = createComponent('Image');
-const SafeAreaView = createComponent('SafeAreaView');
-const StatusBar = createComponent('StatusBar');
-
-// Export all mocked components and utilities
-export {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  Image,
-  SafeAreaView,
-  StatusBar,
-};
-
-export const StyleSheet = {
-  create: (styles) => styles,
-  flatten: (style) => style,
-  compose: (style1, style2) => (style1 && style2 ? [style1, style2] : style1 || style2),
-  hairlineWidth: 1,
-  absoluteFillObject: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+module.exports = {
+  View: createMockComponent('View'),
+  Text: createMockComponent('Text'),
+  ScrollView: createMockComponent('ScrollView'),
+  TouchableOpacity: createMockComponent('TouchableOpacity'),
+  TouchableWithoutFeedback: createMockComponent('TouchableWithoutFeedback'),
+  Image: createMockComponent('Image'),
+  SafeAreaView: createMockComponent('SafeAreaView'),
+  StatusBar: createMockComponent('StatusBar'),
+  StyleSheet: {
+    create: (styles) => styles,
+    flatten: (style) => style,
+    compose: (style1, style2) => [style1, style2],
+    hairlineWidth: 1,
+    absoluteFillObject: {},
+    absoluteFill: {},
   },
-};
-
-export const Platform = {
-  OS: 'ios',
-  Version: '14.0',
-  isPad: false,
-  isTVOS: false,
-  isTV: false,
-  select: (obj) => obj.ios !== undefined ? obj.ios : obj.default,
-};
-
-export const Dimensions = {
-  get: (dim) => {
-    const dimensions = {
-      window: { width: 375, height: 812, scale: 2, fontScale: 1 },
-      screen: { width: 375, height: 812, scale: 2, fontScale: 1 },
-    };
-    return dimensions[dim] || dimensions.window;
+  Platform: {
+    OS: 'ios',
+    Version: '14.0',
+    select: (obj) => obj.ios,
   },
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
+  Dimensions: {
+    get: (dim) => ({ width: 375, height: 812, scale: 2, fontScale: 1 }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    set: jest.fn(),
+  },
+  PixelRatio: {
+    get: () => 2,
+    getFontScale: () => 1,
+    getPixelSizeForLayoutSize: (size) => size * 2,
+    roundToNearestPixel: (size) => Math.round(size * 2) / 2,
+  },
+  Alert: {
+    alert: jest.fn(),
+  },
+  Animated: {
+    View: createMockComponent('AnimatedView'),
+    Text: createMockComponent('AnimatedText'),
+    ScrollView: createMockComponent('AnimatedScrollView'),
+    Image: createMockComponent('AnimatedImage'),
+    Value: class { constructor() {} setValue() {} addListener() {} removeListener() {} removeAllListeners() {} stopAnimation() {} resetAnimation() {} interpolate() { return this; } animate() {} },
+    ValueXY: class { constructor() {} setValue() {} addListener() {} removeListener() {} removeAllListeners() {} getLayout() {} getTranslateTransform() {} },
+    timing: jest.fn(() => ({ start: jest.fn((cb) => cb && cb({ finished: true })) })),
+    spring: jest.fn(() => ({ start: jest.fn((cb) => cb && cb({ finished: true })) })),
+    decay: jest.fn(() => ({ start: jest.fn((cb) => cb && cb({ finished: true })) })),
+    parallel: jest.fn(() => ({ start: jest.fn((cb) => cb && cb({ finished: true })) })),
+    sequence: jest.fn(() => ({ start: jest.fn((cb) => cb && cb({ finished: true })) })),
+    event: jest.fn(() => jest.fn()),
+    createAnimatedComponent: (Component) => Component,
+  },
+  AppState: {
+    currentState: 'active',
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  },
+  Linking: {
+    openURL: jest.fn(() => Promise.resolve()),
+    canOpenURL: jest.fn(() => Promise.resolve(true)),
+    getInitialURL: jest.fn(() => Promise.resolve(null)),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  },
+  NativeModules: {},
+  requireNativeComponent: jest.fn((name) => createMockComponent(name)),
 };
 
-export const PixelRatio = {
-  get: () => 2,
-  getFontScale: () => 1,
-  getPixelSizeForLayoutSize: (size) => size * 2,
-  roundToNearestPixel: (size) => Math.round(size * 2) / 2,
-};
-
-export const Alert = {
-  alert: jest.fn(),
-};
-
-export const Animated = {
-  View: createComponent('AnimatedView'),
-  Text: createComponent('AnimatedText'),
-  ScrollView: createComponent('AnimatedScrollView'),
-  Image: createComponent('AnimatedImage'),
-  Value: jest.fn(() => ({
-    setValue: jest.fn(),
-    setOffset: jest.fn(),
-    flattenOffset: jest.fn(),
-    extractOffset: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    removeAllListeners: jest.fn(),
-    stopAnimation: jest.fn(),
-    resetAnimation: jest.fn(),
-    interpolate: jest.fn(),
-    animate: jest.fn(),
-  })),
-  ValueXY: jest.fn(() => ({
-    setValue: jest.fn(),
-    setOffset: jest.fn(),
-    flattenOffset: jest.fn(),
-    extractOffset: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    removeAllListeners: jest.fn(),
-    stopAnimation: jest.fn(),
-    resetAnimation: jest.fn(),
-    getLayout: jest.fn(),
-    getTranslateTransform: jest.fn(),
-  })),
-  timing: jest.fn(() => ({
-    start: jest.fn((callback) => callback && callback({ finished: true })),
-    stop: jest.fn(),
-    reset: jest.fn(),
-  })),
-  spring: jest.fn(() => ({
-    start: jest.fn((callback) => callback && callback({ finished: true })),
-    stop: jest.fn(),
-    reset: jest.fn(),
-  })),
-  decay: jest.fn(() => ({
-    start: jest.fn((callback) => callback && callback({ finished: true })),
-    stop: jest.fn(),
-    reset: jest.fn(),
-  })),
-  parallel: jest.fn(() => ({
-    start: jest.fn((callback) => callback && callback({ finished: true })),
-    stop: jest.fn(),
-    reset: jest.fn(),
-  })),
-  sequence: jest.fn(() => ({
-    start: jest.fn((callback) => callback && callback({ finished: true })),
-    stop: jest.fn(),
-    reset: jest.fn(),
-  })),
-  event: jest.fn(),
-  createAnimatedComponent: jest.fn((component) => component),
-};
+module.exports.default = module.exports;

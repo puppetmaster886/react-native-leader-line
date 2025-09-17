@@ -15,4 +15,9 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// 3. Add extra node modules path for the library
+config.resolver.extraNodeModules = {
+  'react-native-leader-line': path.resolve(workspaceRoot, 'packages/react-native-leader-line'),
+};
+
 module.exports = config;

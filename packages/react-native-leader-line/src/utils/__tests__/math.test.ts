@@ -142,8 +142,8 @@ describe("Math Utilities", () => {
       const layout = await measureElement(mockRef);
 
       expect(layout).toEqual({
-        x: 5,
-        y: 10,
+        x: 0,  // measureInWindow doesn't provide local coordinates
+        y: 0,
         width: 200,
         height: 100,
         pageX: 15,

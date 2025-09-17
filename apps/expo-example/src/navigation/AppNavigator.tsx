@@ -28,8 +28,13 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
+  console.log('🦭 AppNavigator: Component loaded');
+  
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      onReady={() => console.log('✅ Navigation: Container ready')}
+      onStateChange={(state) => console.log('📋 Navigation state changed:', state?.routeNames?.[state.index])}
+    >
       <Stack.Navigator
         screenOptions={{
           headerStyle: {

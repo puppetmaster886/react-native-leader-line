@@ -61,6 +61,8 @@ const examples = [
 ];
 
 export default function HomeScreen({ navigation }: Props) {
+  console.log('🏠 HomeScreen: Component rendered');
+  
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>

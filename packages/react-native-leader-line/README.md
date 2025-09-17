@@ -49,6 +49,13 @@ This library is specifically optimized for **Large Language Model (LLM) consumpt
 
 ## 📦 Installation
 
+> ⚠️ **Note**: This library does **NOT** require Expo. It works with any React Native project (bare workflow, Expo managed workflow, etc.).
+
+### Requirements
+
+- React Native 0.64 or higher
+- react-native-svg 12.0.0 or higher
+
 ```bash
 npm install react-native-leader-line react-native-svg
 # or

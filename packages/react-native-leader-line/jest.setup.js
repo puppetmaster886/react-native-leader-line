@@ -1,5 +1,9 @@
 // Jest setup for React Native Leader Line
 
+// Import React to ensure it's available globally
+import React from 'react';
+global.React = React;
+
 // Import testing library extensions
 import '@testing-library/jest-native/extend-expect';
 

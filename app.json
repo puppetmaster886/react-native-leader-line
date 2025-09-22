@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "react-native-leader-line-monorepo",
+    "slug": "react-native-leader-line-monorepo",
+    "version": "1.0.0",
+    "sdkVersion": "51.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  }
+}

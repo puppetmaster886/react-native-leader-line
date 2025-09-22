@@ -61,8 +61,8 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.9.0",
     "@types/jest": "^29.5.5",
-    "@types/react": "18.2.0",
-    
+    "@types/react": "~18.2.79",
+    "@types/react-native": "0.74.0",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "babel-jest": "^29.7.0",
@@ -71,7 +71,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-native": "^4.1.0",
     "jest": "^29.7.0",
-    
     "react": "18.2.0",
     "react-native": "0.74.5",
     "react-native-svg": "15.2.0",
@@ -83,7 +82,7 @@
     "yarn": ">=1.22.0"
   },
   "resolutions": {
-    "@types/react": "18.2.0"
+    "@types/react": "~18.2.79"
   },
   "packageManager": "yarn@1.22.22"
 }

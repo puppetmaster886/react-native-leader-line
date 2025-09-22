@@ -25,7 +25,10 @@ yarn workspace react-native-leader-line build
 ### Running the Example
 
 ```bash
-# From the repository root
+# From the repository root (recommended for development with tunnel and clear cache)
+yarn workspace expo-example start --tunnel --clear
+
+# Or basic command
 yarn workspace expo-example start
 
 # Or from this directory
@@ -43,11 +46,13 @@ This will start the Expo development server. You can then:
 The app includes comprehensive examples organized by feature:
 
 ### 1. **Basic Demo**
+
 - Simple line connections between elements
 - Basic configuration options
 - Default styling
 
 ### 2. **Path Types Demo**
+
 - `straight` - Direct lines
 - `arc` - Curved lines with adjustable curvature
 - `fluid` - Smooth bezier curves
@@ -55,33 +60,39 @@ The app includes comprehensive examples organized by feature:
 - `grid` - Grid-aligned paths
 
 ### 3. **Socket Positions Demo**
+
 - All 9 socket positions (center, top, right, bottom, left, corners)
 - Auto socket detection
 - Socket gravity demonstrations
 
 ### 4. **Animations Demo**
+
 - Show/hide animations
 - Fade effects
 - Draw-on animations
 - Dynamic property updates
 
 ### 5. **Labels Demo**
+
 - Start, middle, and end labels
 - Caption labels
 - Path labels
 - Label styling options
 
 ### 6. **Multiple Lines Demo**
+
 - Managing multiple connections
 - Batch updates for performance
 - Complex connection scenarios
 
 ### 7. **Imperative API Demo**
+
 - Using the hook-based manager pattern
 - Dynamic line creation/removal
 - Programmatic control
 
 ### 8. **Effects Demo**
+
 - Outline effects
 - Drop shadows
 - Dash patterns
@@ -129,9 +140,9 @@ To add your own examples:
 Example screen template:
 
 ```typescript
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { LeaderLine } from 'react-native-leader-line';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { LeaderLine } from "react-native-leader-line";
 
 export function MyCustomDemo() {
   const startRef = useRef(null);
@@ -156,9 +167,11 @@ export function MyCustomDemo() {
 ### Common Issues
 
 1. **"Module not found: react-native-leader-line"**
+
    - Make sure you've built the library: `yarn workspace react-native-leader-line build`
 
 2. **"Unable to resolve module react-native-svg"**
+
    - Run `yarn install` from the repository root
 
 3. **Expo Go crashes**

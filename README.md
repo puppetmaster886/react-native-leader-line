@@ -39,17 +39,20 @@ See the [library README](./packages/react-native-leader-line/README.md) for deta
 ### For Contributors
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/puppetmaster886/react-native-leader-line.git
 cd react-native-leader-line
 ```
 
 2. Install dependencies:
+
 ```bash
 yarn install
 ```
 
 3. Build the library:
+
 ```bash
 yarn workspace react-native-leader-line build
 ```
@@ -91,8 +94,8 @@ yarn workspace react-native-leader-line lint:fix
 ### Example Apps
 
 ```bash
-# Run Expo example
-yarn workspace expo-example start
+# Run Expo example with tunnel and clear cache
+yarn workspace expo-example start --tunnel --clear
 
 # Run bare React Native example (iOS)
 yarn workspace bare-example ios
@@ -119,7 +122,7 @@ Interactive example app showcasing all library features using Expo.
 
 - **Location**: `apps/expo-example`
 - **Features**: Live demos, navigation, all component variations
-- **Run**: `yarn workspace expo-example start`
+- **Run**: `yarn workspace expo-example start --tunnel --clear`
 
 [View Example README](./apps/expo-example/README.md)
 

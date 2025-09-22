@@ -1,21 +1,17 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-// import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator from './src/navigation/AppNavigator';
 import TestApp from './TestApp';
 
 export default function App() {
-  console.log('🚀 App.tsx: App component loaded');
   
   useEffect(() => {
-    console.log('🎯 App.tsx: App mounted');
     return () => {
-      console.log('💔 App.tsx: App unmounted');
     };
   }, []);
 
   try {
-    console.log('📱 App.tsx: Rendering TestApp');
-    return <TestApp />;
+    return <AppNavigator />;
   } catch (error) {
     console.error('❌ App.tsx: Error rendering app:', error);
     return (

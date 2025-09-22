@@ -218,6 +218,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   // Testing props
   testID,
 }) => {
+  console.log(`[LeaderLine] Render - testID: ${testID}`);
   // Internal state for connection points and SVG bounds
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [endPoint, setEndPoint] = useState<Point | null>(null);
@@ -234,6 +235,11 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   // Enhanced setElementsReady with logging
   const setElementsReadyWithLog = useCallback(
     (value: boolean) => {
+      if (elementsReady !== value) {
+        console.log(
+          `[LeaderLine] elementsReady changed to: ${value} - testID: ${testID}`
+        );
+      }
       setElementsReady(value);
     },
     [elementsReady, testID]
@@ -364,7 +370,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   useEffect(() => {
     const calculatePoints = async () => {
       try {
-
+        console.log(`[LeaderLine] Calculating points... testID: ${testID}`);
         if (start.element?.current && end.element?.current) {
           // Both are React elements - measure them and calculate connection points
           // Try the new relative method first
@@ -501,6 +507,10 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           setElementsReadyWithLog(false);
         }
       } catch (error) {
+        console.error(
+          `[LeaderLine] Error calculating points: testID: ${testID}`,
+          error
+        );
         setElementsReadyWithLog(false);
       }
     };
@@ -538,8 +548,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
    * This ensures the SVG container is large enough to contain the entire line
    */
   useEffect(() => {
-
     if (startPoint && endPoint) {
+      console.log(`[LeaderLine] Updating SVG bounds... testID: ${testID}`);
       const pathType = typeof path === "string" ? path : path.type;
       const normalizedMainOutline = normalizeOutlineOptions(outline);
 

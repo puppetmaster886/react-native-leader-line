@@ -17,8 +17,5 @@
     "bare:start": "yarn workspace bare-example start",
     "bare:android": "yarn workspace bare-example android",
     "bare:ios": "yarn workspace bare-example ios"
-  },
-  "resolutions": {
-    "@types/react": "18.2.0"
   }
 }

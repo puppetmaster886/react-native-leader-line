@@ -32,6 +32,7 @@ export const useLeaderLine = ({
   endSocket = "center",
   observeChanges = true,
 }: UseLeaderLineProps) => {
+  console.log("[useLeaderLine] Hook rendered");
   const [connectionPoints, setConnectionPoints] = useState<{
     start: Point;
     end: Point;
@@ -51,6 +52,7 @@ export const useLeaderLine = ({
 
   const updateConnectionPoints = useCallback(async () => {
     try {
+      console.log("[useLeaderLine] Updating connection points...");
       if (startBox && endBox) {
         // Use provided bounding boxes
         const adjustedStartBox = boundingBoxToLayout(startBox);
@@ -61,10 +63,12 @@ export const useLeaderLine = ({
           end: getSocketPoint(adjustedEndBox, endSocket),
         };
 
+        console.log("[useLeaderLine] Setting points from boxes:", points);
         setConnectionPoints(points);
         setIsReady(true);
       } else if (startElement?.current && endElement?.current) {
         // Measure elements
+        console.log("[useLeaderLine] Measuring elements...");
         const startLayout = await measureElement(startElement);
         const endLayout = await measureElement(endElement);
 
@@ -74,11 +78,13 @@ export const useLeaderLine = ({
             end: getSocketPoint(endLayout, endSocket),
           };
 
+          console.log("[useLeaderLine] Setting points from elements:", points);
           setConnectionPoints(points);
           setIsReady(true);
         }
       }
     } catch (error) {
+      console.error("[useLeaderLine] Error updating connection points:", error);
       setIsReady(false);
     }
   }, [startElement, endElement, startBox, endBox, startSocket, endSocket]);
@@ -95,6 +101,7 @@ export const useLeaderLine = ({
     const endEl = endElement?.current;
 
     if (startEl && endEl) {
+      console.log("[useLeaderLine] Setting up observer interval");
       // Poll for changes every 100ms (adjust as needed)
       intervalRef.current = setInterval(() => {
         updateConnectionPoints();
@@ -103,6 +110,7 @@ export const useLeaderLine = ({
 
     return () => {
       if (intervalRef.current) {
+        console.log("[useLeaderLine] Clearing observer interval");
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
@@ -110,10 +118,13 @@ export const useLeaderLine = ({
   }, [startElement, endElement, observeChanges, updateConnectionPoints]);
 
   // Memoize return object to prevent unnecessary re-renders
-  return useMemo(() => ({
-    connectionPoints,
-    isReady,
-    updateConnectionPoints,
-    calculateConnectionPoint,
-  }), [connectionPoints, isReady, updateConnectionPoints, calculateConnectionPoint]);
+  return useMemo(() => {
+    console.log("[useLeaderLine] Memoizing return value. isReady:", isReady);
+    return {
+      connectionPoints,
+      isReady,
+      updateConnectionPoints,
+      calculateConnectionPoint,
+    };
+  }, [connectionPoints, isReady, updateConnectionPoints, calculateConnectionPoint]);
 };

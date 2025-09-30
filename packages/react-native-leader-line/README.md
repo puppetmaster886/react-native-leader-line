@@ -164,7 +164,7 @@ const MyComponent = () => {
   startLabel="Begin"
   middleLabel={{
     text: "Processing",
-    backgroundColor: "#f39c12",
+    backgroundColor: "#f39c",
     color: "white",
     borderRadius: 8,
     padding: 6,
@@ -179,26 +179,30 @@ const MyComponent = () => {
 
 Try react-native-leader-line directly in your browser with these interactive examples:
 
-| Demo | Description | Features |
-|------|-------------|----------|
-| [🎯 **Basic Demo**](https://snack.expo.dev/@your-username/react-native-leader-line-basic-demo) | Simple usage and core functionality | Basic connections, colors, socket positioning |
-| [🚀 **Advanced Features**](https://snack.expo.dev/@your-username/react-native-leader-line-advanced-demo) | Complex styling and effects | Path types, outlines, shadows, labels |
-| [⚡ **Imperative API**](https://snack.expo.dev/@your-username/react-native-leader-line-imperative-demo) | Programmatic control | Dynamic creation, batch operations |
-| [🎮 **Interactive Playground**](https://snack.expo.dev/@your-username/react-native-leader-line-playground) | Real-time property editor | Live adjustments, code generation |
-| [🏭 **Real-world Examples**](https://snack.expo.dev/@your-username/react-native-leader-line-real-world) | Production use cases | Workflows, networks, dashboards |
+| Demo                                                                                                       | Description                         | Features                                      |
+| ---------------------------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------------------- |
+| [🎯 **Basic Demo**](https://snack.expo.dev/@your-username/react-native-leader-line-basic-demo)             | Simple usage and core functionality | Basic connections, colors, socket positioning |
+| [🚀 **Advanced Features**](https://snack.expo.dev/@your-username/react-native-leader-line-advanced-demo)   | Complex styling and effects         | Path types, outlines, shadows, labels         |
+| [⚡ **Imperative API**](https://snack.expo.dev/@your-username/react-native-leader-line-imperative-demo)    | Programmatic control                | Dynamic creation, batch operations            |
+| [🎮 **Interactive Playground**](https://snack.expo.dev/@your-username/react-native-leader-line-playground) | Real-time property editor           | Live adjustments, code generation             |
+| [🏭 **Real-world Examples**](https://snack.expo.dev/@your-username/react-native-leader-line-real-world)    | Production use cases                | Workflows, networks, dashboards               |
 
 ### 📱 Local Examples
 
 For complete integration examples, check out the [`examples/`](./examples) directory:
 
 #### Basic Example
+
 Simple usage demonstrating core functionality:
+
 ```bash
 cd examples/basic && npm install && npm run android
 ```
 
-#### Advanced Example  
+#### Advanced Example
+
 Comprehensive demos with all features:
+
 ```bash
 cd examples/advanced && npm install && npm run android
 ```
@@ -241,16 +245,19 @@ const props: LeaderLineProps = {
 
 ### LeaderLine Props
 
-| Prop          | Type             | Default      | Description                                                       |
-| ------------- | ---------------- | ------------ | ----------------------------------------------------------------- |
-| `start`       | `Attachment`     | **required** | Starting attachment point                                         |
-| `end`         | `Attachment`     | **required** | Ending attachment point                                           |
-| `color`       | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                                     |
-| `strokeWidth` | `number`         | `2`          | Line thickness in pixels                                          |
-| `path`        | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`. See `PathType`. |
-| `endPlug`     | `PlugType`       | `"arrow1"`   | End marker style. See `PlugType` definition.                      |
-| `startSocket` | `SocketPosition` | `"center"`   | Connection point on start element                                 |
-| `endSocket`   | `SocketPosition` | `"center"`   | Connection point on end element                                   |
+| Prop                         | Type             | Default      | Description                                                       |
+| ---------------------------- | ---------------- | ------------ | ----------------------------------------------------------------- |
+| `start`                      | `Attachment`     | **required** | Starting attachment point                                         |
+| `end`                        | `Attachment`     | **required** | Ending attachment point                                           |
+| `color`                      | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                                     |
+| `strokeWidth`                | `number`         | `2`          | Line thickness in pixels                                          |
+| `path`                       | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`. See `PathType`. |
+| `endPlug`                    | `PlugType`       | `"arrow1"`   | End marker style. See `PlugType` definition.                      |
+| `startSocket`                | `SocketPosition` | `"center"`   | Connection point on start element                                 |
+| `endSocket`                  | `SocketPosition` | `"center"`   | Connection point on end element                                   |
+| `debugSvgBackground`         | `boolean`        | `false`      | Show green background on SVG element for debugging                |
+| `debugContainerBackground`   | `boolean`        | `false`      | Show magenta background on container for debugging                |
+| `debugEarlyReturnBackground` | `boolean`        | `false`      | Show blue background when component early returns                 |
 
 ### Socket Positions
 
@@ -294,29 +301,31 @@ Coming from the original [leader-line](https://github.com/anseki/leader-line) li
 ### Quick Migration
 
 **Before (leader-line):**
+
 ```javascript
 const line = new LeaderLine(
-  document.getElementById('start'),
-  document.getElementById('end'),
-  { color: 'coral', size: 4 }
+  document.getElementById("start"),
+  document.getElementById("end"),
+  { color: "coral", size: 4 }
 );
 ```
 
 **After (react-native-leader-line):**
+
 ```tsx
 // Option 1: Declarative (Recommended)
-<LeaderLine 
-  start={{ element: startRef }} 
+<LeaderLine
+  start={{ element: startRef }}
   end={{ element: endRef }}
-  color="coral" 
-  strokeWidth={4} 
-/>
+  color="coral"
+  strokeWidth={4}
+/>;
 
 // Option 2: Imperative (Same API!)
 const { LeaderLine } = useLeaderLineCompatibility();
 const line = new LeaderLine(startRef, endRef, {
-  color: 'coral',
-  size: 4  // legacy property still works!
+  color: "coral",
+  size: 4, // legacy property still works!
 });
 ```
 
@@ -471,6 +480,39 @@ interface LineData {
   lastUpdate: number;
 }
 ```
+
+## 🐛 Debug Features
+
+The library includes built-in debugging capabilities to help with development and troubleshooting:
+
+### Debug Props
+
+Use these boolean props to visualize different aspects of the LeaderLine component:
+
+```tsx
+<LeaderLine
+  start={startRef}
+  end={endRef}
+  debugSvgBackground={true} // Green background on SVG
+  debugContainerBackground={true} // Magenta background on container
+  debugEarlyReturnBackground={true} // Blue background on early return
+/>
+```
+
+### Debug Use Cases
+
+- **SVG Background**: Helps identify the actual SVG rendering area
+- **Container Background**: Shows the component's container boundaries
+- **Early Return Background**: Indicates when the component returns early (refs not ready)
+
+These debug features are particularly useful when:
+
+- Troubleshooting layout issues
+- Understanding component boundaries
+- Debugging reference timing problems
+- Developing custom layouts
+
+See the [expo-example app](../../apps/expo-example/README.md#-debug-system) for a complete debug system implementation.
 
 ## 🤝 Contributing
 

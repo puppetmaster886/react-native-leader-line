@@ -9,12 +9,13 @@ import { LeaderLine } from "react-native-leader-line";
 const BasicConnectionTest = () => {
   const elementARef = useRef(null);
   const elementBRef = useRef(null);
+  const containerRef = useRef(null);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Basic Connection Test</Text>
 
-      <View style={styles.testArea}>
+      <View ref={containerRef} style={styles.testArea}>
         {/* Element A */}
         <View ref={elementARef} style={[styles.element, styles.elementA]}>
           <Text style={styles.elementText}>A</Text>
@@ -27,13 +28,14 @@ const BasicConnectionTest = () => {
 
         {/* Leader Line */}
         <LeaderLine
-          start={elementARef}
-          end={elementBRef}
+          start={{ element: elementARef }}
+          end={{ element: elementBRef }}
           color="#007AFF"
-          size={2}
+          strokeWidth={2}
           startPlug="disc"
           endPlug="arrow1"
           path="straight"
+          containerRef={containerRef}
         />
       </View>
 

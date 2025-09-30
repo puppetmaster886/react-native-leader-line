@@ -165,7 +165,7 @@ TypeScript-first with extensive JSDoc for LLM consumption:
 ## Current Status (July 2025)
 
 ### Build Status
-- **TypeScript Build**: ❌ Failing due to type mismatches between @types/react-native@0.72.0 and @types/react@18.3.12
+- **TypeScript Build**: ❌ Failing due to type mismatches between `@types/react-native@0.74.0` and `@types/react@~18.2.79`
   - Error: "bigint is not assignable to type 'ReactNode'"
   - Affects: LeaderLine.tsx, LeaderLineClass.tsx, useImperativeLeaderLine.ts
 

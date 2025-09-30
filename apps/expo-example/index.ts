@@ -1,14 +1,10 @@
-import { registerRootComponent } from 'expo';
-import { LogBox } from 'react-native';
-
-console.log('🌟 index.ts: App entry point loaded');
+import { registerRootComponent } from "expo";
+import { LogBox } from "react-native";
 
 // Show all warnings and errors
 LogBox.ignoreLogs([]);
 
-import App from './App';
-
-console.log('🚀 index.ts: Registering root component');
+import App from "./App";
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,

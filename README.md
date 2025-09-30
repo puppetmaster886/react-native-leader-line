@@ -75,11 +75,30 @@ yarn lint
 yarn build
 ```
 
+### 🔥 Auto-Watch Development
+
+```bash
+# Watch library and auto-rebuild on changes
+yarn dev:lib
+
+# Watch library with verbose output
+yarn dev:lib:verbose
+
+# Run example app
+yarn dev:example
+
+# Run both library watch + example app simultaneously
+yarn dev:all
+```
+
 ### Library Development
 
 ```bash
-# Build the library
+# Build the library once
 yarn workspace react-native-leader-line build
+
+# Watch and auto-rebuild on changes
+yarn workspace react-native-leader-line dev
 
 # Run library tests
 yarn workspace react-native-leader-line test
@@ -104,7 +123,41 @@ yarn workspace bare-example ios
 yarn workspace bare-example android
 ```
 
-## 📦 Packages
+## � Development Workflow
+
+### Recommended Development Flow
+
+1. **Start Auto-Watch**: Begin with library auto-compilation
+
+   ```bash
+   yarn dev:lib
+   ```
+
+2. **Run Example App**: In a second terminal, start the demo app
+
+   ```bash
+   yarn dev:example
+   ```
+
+3. **Alternative: Run Both Simultaneously**
+
+   ```bash
+   yarn dev:all  # Uses concurrently to run both
+   ```
+
+4. **Debug with Built-in Tools**: Use the 🐛 Debug button in the example app
+   - Toggle visual debugging elements
+   - Monitor console logs
+   - Test layout boundaries
+
+### Hot Development Tips
+
+- **Auto-recompilation**: Changes in `packages/react-native-leader-line/src/` trigger instant rebuilds
+- **Debug system**: Use the comprehensive debug toggles in example app
+- **Type safety**: TypeScript compiler catches errors immediately
+- **Live reload**: Metro bundler reflects changes in the example app instantly
+
+## �📦 Packages
 
 ### react-native-leader-line
 

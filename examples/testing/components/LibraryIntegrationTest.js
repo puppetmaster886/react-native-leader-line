@@ -19,6 +19,7 @@ const LibraryIntegrationTest = () => {
   const [connectionStatus, setConnectionStatus] = useState("Not connected");
   const elementARef = useRef(null);
   const elementBRef = useRef(null);
+  const containerRef = useRef(null);
 
   const testConnection = () => {
     if (!LeaderLine) {
@@ -59,13 +60,14 @@ const LibraryIntegrationTest = () => {
 
     return (
       <LeaderLine
-        start={elementARef}
-        end={elementBRef}
+        start={{ element: elementARef }}
+        end={{ element: elementBRef }}
         color="#8E44AD"
-        size={3}
+        strokeWidth={3}
         startPlug="square"
         endPlug="arrow2"
         path="arc"
+        containerRef={containerRef}
         dash={{ animation: true }}
       />
     );
@@ -92,7 +94,7 @@ const LibraryIntegrationTest = () => {
         <Text style={styles.testButtonText}>Test Connection</Text>
       </TouchableOpacity>
 
-      <View style={styles.testArea}>
+      <View ref={containerRef} style={styles.testArea}>
         {/* Element A */}
         <View ref={elementARef} style={[styles.element, styles.elementA]}>
           <Text style={styles.elementText}>LIB</Text>

@@ -698,6 +698,8 @@ export interface LeaderLineProps extends LeaderLineOptions {
   optimizeUpdates?: boolean;
   /** Minimum pixel change to trigger update (default: 5) */
   updateThreshold?: number;
+  /** Enable smooth interpolation for animations (default: false) */
+  smoothAnimations?: boolean;
 }
 
 /**

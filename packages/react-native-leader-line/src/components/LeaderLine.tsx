@@ -1,6 +1,6 @@
 /**
  * @fileoverview React Native Leader Line Component
- * @description Main LeaderLine component optimized for LLM consumption with comprehensive JSDoc
+ * @description Professional LeaderLine component for drawing connections between UI elements
  * @version 1.1.0
  * @author Federico Garcia
  *
@@ -29,34 +29,24 @@
  *   );
  * };
  * ```
- *
- * @example Advanced Styling
- * ```tsx
- * <LeaderLine
- *   start={{ element: startRef }}
- *   end={{ element: endRef }}
- *   color="#e74c3c"
- *   strokeWidth={4}
- *   path="arc"
- *   curvature={0.3}
- *   endPlug="arrow2"
- *   outline={{ enabled: true, color: "white", size: 2 }}
- *   dropShadow={{ dx: 2, dy: 2, blur: 4, color: "rgba(0,0,0,0.3)" }}
- *   startLabel="Begin"
- *   endLabel="End"
- * />
- * ```
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { Text, View } from "react-native";
-import Svg, { Defs, Marker, Path, Rect, Text as SvgText } from "react-native-svg";
+import Svg, { Path, Text as SvgText } from "react-native-svg";
 import { useMultipleLabels } from "../hooks/useMultipleLabels";
-import { BoundingBox, LeaderLineProps, Point } from "../types";
+import { BoundingBox, LeaderLineProps, Point, SocketPosition } from "../types";
 import {
   areaAnchor,
   calculateConnectionPointsRelative,
   calculatePathBoundingBoxWithOutline,
+  calculatePlugTransform,
   createEnhancedPlugPath,
   generateDashArray,
   generateEnhancedPathData,
@@ -64,25 +54,50 @@ import {
   measureElementWithLayout,
   mouseHoverAnchor,
   normalizeOutlineOptions,
-  normalizePlugOutlineOptions,
   pointAnchor,
 } from "../utils/math";
+
+/**
+ * Utility function to check if two points are different
+ */
+const pointsAreDifferent = (
+  p1: Point | null,
+  p2: Point | null,
+  threshold = 1
+): boolean => {
+  if (!p1 || !p2) return p1 !== p2;
+  return Math.abs(p1.x - p2.x) > threshold || Math.abs(p1.y - p2.y) > threshold;
+};
+
+/**
+ * Utility function to smoothly interpolate between two points
+ */
+const interpolatePoints = (
+  current: Point | null,
+  target: Point | null,
+  factor = 0.3
+): Point | null => {
+  if (!current || !target) return target;
+  return {
+    x: current.x + (target.x - current.x) * factor,
+    y: current.y + (target.y - current.y) * factor,
+  };
+};
 
 /**
  * Hook to force re-calculation when elements layout changes
  */
 const useLayoutRecalculation = (
-  start: any,
-  end: any,
-  startSocket: any,
-  endSocket: any,
-  setStartPoint: any,
-  setEndPoint: any,
-  setElementsReady: any,
-  containerRef: any
+  start: { element?: React.RefObject<View>; point?: Point },
+  end: { element?: React.RefObject<View>; point?: Point },
+  startSocket: SocketPosition,
+  endSocket: SocketPosition,
+  setStartPoint: (point: Point | null) => void,
+  setEndPoint: (point: Point | null) => void,
+  setElementsReady: (ready: boolean) => void,
+  containerRef: React.RefObject<View>
 ) => {
   const recalculatePoints = useCallback(async () => {
-
     if (start.element?.current && end.element?.current) {
       try {
         const points = await calculateConnectionPointsRelative(
@@ -98,6 +113,7 @@ const useLayoutRecalculation = (
           setElementsReady(true);
         }
       } catch (error) {
+        // Silent error handling for production
       }
     }
   }, [
@@ -118,41 +134,6 @@ const useLayoutRecalculation = (
  * @component LeaderLine
  * @description A React Native component for drawing arrow lines and connectors between UI elements.
  * This component provides a powerful and flexible way to create visual connections in mobile apps.
- *
- * @param {LeaderLineProps} props - Component props
- * @param {Attachment} props.start - Starting attachment point (required)
- * @param {Attachment} props.end - Ending attachment point (required)
- * @param {SocketPosition} [props.startSocket="center"] - Where the line connects to the start element
- * @param {SocketPosition} [props.endSocket="center"] - Where the line connects to the end element
- * @param {string} [props.color="#ff6b6b"] - Line color (CSS color string)
- * @param {number} [props.strokeWidth=2] - Line thickness in pixels
- * @param {number} [props.opacity=1] - Line opacity (0-1)
- * @param {PathType|PathConfiguration} [props.path="straight"] - Line path type
- * @param {number} [props.curvature=0.2] - Curve amount for arc paths (0-1)
- * @param {PlugType} [props.startPlug="none"] - Start marker type
- * @param {PlugType} [props.endPlug="arrow1"] - End marker type
- * @param {string} [props.startPlugColor] - Custom color for start marker
- * @param {string} [props.endPlugColor] - Custom color for end marker
- * @param {number} [props.startPlugSize=10] - Start marker size
- * @param {number} [props.endPlugSize=10] - End marker size
- * @param {boolean|DashOptions} [props.dash] - Dash pattern configuration
- * @param {boolean|OutlineOptions} [props.outline] - Line outline configuration
- * @param {boolean|PlugOutlineOptions} [props.startPlugOutline] - Start marker outline
- * @param {boolean|PlugOutlineOptions} [props.endPlugOutline] - End marker outline
- * @param {boolean|DropShadowOptions} [props.dropShadow=false] - Drop shadow configuration
- * @param {LabelOptions} [props.label] - Simple label configuration
- * @param {ViewStyle} [props.style] - Container style
- * @param {React.ReactNode} [props.children] - Child components
- * @param {string|EnhancedLabelOptions} [props.startLabel] - Label at line start
- * @param {string|EnhancedLabelOptions} [props.middleLabel] - Label at line middle
- * @param {string|EnhancedLabelOptions} [props.endLabel] - Label at line end
- * @param {string|EnhancedLabelOptions} [props.captionLabel] - Caption label
- * @param {string|EnhancedLabelOptions} [props.pathLabel] - Path label
- *
- * @returns {React.ReactElement|null} The rendered LeaderLine component
- *
- * @since 1.0.0
- * @public
  */
 export const LeaderLine: React.FC<LeaderLineProps> = ({
   // Required props
@@ -217,8 +198,15 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
 
   // Testing props
   testID,
+
+  // Update configuration
+  updateThreshold = 300, // Increased to 300ms for smoother scroll performance
+  optimizeUpdates = true,
+  smoothAnimations = false, // Disabled smooth interpolation to prevent overcompensation
 }) => {
-  console.log(`[LeaderLine] Render - testID: ${testID}`);
+  // Auto-ref: LeaderLine's own container reference
+  const leaderLineContainerRef = useRef<View>(null);
+
   // Internal state for connection points and SVG bounds
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [endPoint, setEndPoint] = useState<Point | null>(null);
@@ -232,18 +220,11 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   // Track layout readiness
   const [elementsReady, setElementsReady] = useState(false);
 
-  // Enhanced setElementsReady with logging
-  const setElementsReadyWithLog = useCallback(
-    (value: boolean) => {
-      if (elementsReady !== value) {
-        console.log(
-          `[LeaderLine] elementsReady changed to: ${value} - testID: ${testID}`
-        );
-      }
-      setElementsReady(value);
-    },
-    [elementsReady, testID]
-  );
+  // Store previous points for comparison
+  const previousPointsRef = useRef<{ start: Point | null; end: Point | null }>({
+    start: null,
+    end: null,
+  });
 
   // Hook for layout-triggered recalculation
   useLayoutRecalculation(
@@ -253,8 +234,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     endSocket,
     setStartPoint,
     setEndPoint,
-    setElementsReadyWithLog,
-    containerRef
+    setElementsReady,
+    leaderLineContainerRef
   );
 
   // Animation state
@@ -267,12 +248,11 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   });
 
   /**
-   * @description Handle animation start
+   * Handle animation start
    */
   const handleAnimationStart = useCallback(() => {
     setAnimationState((prev) => ({ ...prev, isAnimating: true }));
     if (onAnimationStart) {
-      // Schedule callback to run after a small delay to ensure component is ready
       setTimeout(() => {
         onAnimationStart();
       }, 0);
@@ -280,7 +260,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   }, [onAnimationStart]);
 
   /**
-   * @description Handle animation end
+   * Handle animation end
    */
   const handleAnimationEnd = useCallback(() => {
     setAnimationState((prev) => ({ ...prev, isAnimating: false }));
@@ -292,7 +272,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   }, [onAnimationEnd]);
 
   /**
-   * @description Handle animation iteration for loops
+   * Handle animation iteration for loops
    */
   const handleAnimationIteration = useCallback(() => {
     setAnimationState((prev) => ({
@@ -307,34 +287,30 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   }, [onAnimationIteration]);
 
   /**
-   * @description Start animation when component mounts or animation props change
+   * Start animation when component mounts or animation props change
    */
   useEffect(() => {
     if (animation && !animationPaused) {
       handleAnimationStart();
 
-      // Simulate animation duration
       const timer = setTimeout(() => {
         if (!animationLoop) {
           handleAnimationEnd();
         }
       }, animationDuration + animationDelay);
 
-      // Handle animation loops
       if (animationLoop) {
-        const maxIterations = animationLoopCount || 100; // Default to finite loops for testing
+        const maxIterations = animationLoopCount || 100;
         let currentIteration = 0;
 
         const loopTimer = setInterval(() => {
           currentIteration++;
           handleAnimationIteration();
 
-          // Stop if we've reached the max iterations or if loopCount is explicitly set
           if (animationLoopCount && currentIteration >= animationLoopCount) {
             clearInterval(loopTimer);
             handleAnimationEnd();
           } else if (!animationLoopCount && currentIteration >= maxIterations) {
-            // Safety net to prevent infinite loops in tests
             clearInterval(loopTimer);
             handleAnimationEnd();
           }
@@ -349,7 +325,6 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
       return () => clearTimeout(timer);
     }
 
-    // Return undefined explicitly when animation is not active
     return undefined;
   }, [
     animation,
@@ -364,16 +339,163 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   ]);
 
   /**
-   * @description Calculate connection points between start and end elements/points
-   * This effect runs whenever the start, end, or socket positions change
+   * Optimized auto-update mechanism for animated elements
    */
   useEffect(() => {
-    const calculatePoints = async () => {
+    if (!optimizeUpdates || updateThreshold <= 0) return;
+
+    const calculatePointsOptimized = async () => {
       try {
-        console.log(`[LeaderLine] Calculating points... testID: ${testID}`);
+        let newStartPoint: Point | null = null;
+        let newEndPoint: Point | null = null;
+
         if (start.element?.current && end.element?.current) {
-          // Both are React elements - measure them and calculate connection points
-          // Try the new relative method first
+          const points = await calculateConnectionPointsRelative(
+            start.element.current,
+            end.element.current,
+            startSocket,
+            endSocket,
+            containerRef
+          );
+          if (points) {
+            newStartPoint = points.start;
+            newEndPoint = points.end;
+          }
+        } else if (start.element?.current && end.point) {
+          if (containerRef?.current) {
+            try {
+              const elementPromise = new Promise<Point | null>((resolve) => {
+                start.element!.current!.measureLayout(
+                  containerRef.current!,
+                  (x: number, y: number, width: number, height: number) => {
+                    const layout = {
+                      x: 0,
+                      y: 0,
+                      width,
+                      height,
+                      pageX: x,
+                      pageY: y,
+                      timestamp: Date.now(),
+                    };
+                    const socketPoint = getSocketPoint(layout, startSocket);
+                    resolve(socketPoint);
+                  },
+                  () => {
+                    resolve(null);
+                  }
+                );
+              });
+
+              newStartPoint = await elementPromise;
+              newEndPoint = end.point;
+            } catch (error) {
+              // Silent error handling
+            }
+          }
+        } else if (start.point && end.element?.current) {
+          if (containerRef?.current) {
+            try {
+              const elementPromise = new Promise<Point | null>((resolve) => {
+                end.element!.current!.measureLayout(
+                  containerRef.current!,
+                  (x: number, y: number, width: number, height: number) => {
+                    const layout = {
+                      x: 0,
+                      y: 0,
+                      width,
+                      height,
+                      pageX: x,
+                      pageY: y,
+                      timestamp: Date.now(),
+                    };
+                    const socketPoint = getSocketPoint(layout, endSocket);
+                    resolve(socketPoint);
+                  },
+                  () => {
+                    resolve(null);
+                  }
+                );
+              });
+
+              newStartPoint = start.point;
+              newEndPoint = await elementPromise;
+            } catch (error) {
+              // Silent error handling
+            }
+          }
+        }
+
+        // Only update if points actually changed (larger threshold to reduce oversensitivity)
+        const startChanged = pointsAreDifferent(
+          newStartPoint,
+          previousPointsRef.current.start,
+          5
+        );
+        const endChanged = pointsAreDifferent(
+          newEndPoint,
+          previousPointsRef.current.end,
+          5
+        );
+
+        if (startChanged || endChanged) {
+          if (newStartPoint && newEndPoint) {
+            // Apply smooth interpolation if enabled (less aggressive)
+            const finalStartPoint = smoothAnimations
+              ? interpolatePoints(
+                  previousPointsRef.current.start,
+                  newStartPoint,
+                  0.8
+                )
+              : newStartPoint;
+            const finalEndPoint = smoothAnimations
+              ? interpolatePoints(
+                  previousPointsRef.current.end,
+                  newEndPoint,
+                  0.8
+                )
+              : newEndPoint;
+
+            if (finalStartPoint && finalEndPoint) {
+              setStartPoint(finalStartPoint);
+              setEndPoint(finalEndPoint);
+              setElementsReady(true);
+
+              // Update previous points
+              previousPointsRef.current = {
+                start: finalStartPoint,
+                end: finalEndPoint,
+              };
+            }
+          }
+        }
+      } catch (error) {
+        // Silent error handling for production
+      }
+    };
+
+    // Start the update interval with optimized threshold
+    const intervalId = setInterval(calculatePointsOptimized, updateThreshold);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [
+    start,
+    end,
+    startSocket,
+    endSocket,
+    containerRef,
+    optimizeUpdates,
+    updateThreshold,
+  ]);
+
+  /**
+   * Initial calculation of connection points (only runs once or when dependencies change)
+   */
+  useEffect(() => {
+    const calculateInitialPoints = async () => {
+      try {
+        if (start.element?.current && end.element?.current) {
           const points = await calculateConnectionPointsRelative(
             start.element.current,
             end.element.current,
@@ -384,19 +506,21 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           if (points) {
             setStartPoint(points.start);
             setEndPoint(points.end);
-            setElementsReadyWithLog(true);
+            setElementsReady(true);
+
+            // Store initial points
+            previousPointsRef.current = {
+              start: points.start,
+              end: points.end,
+            };
           } else {
-            setElementsReadyWithLog(false);
+            setElementsReady(false);
           }
         } else if (start.element?.current && end.point) {
-
           if (containerRef?.current) {
-            // Points are relative to container (like original leader-line)
-
-            // Get element coordinates relative to container using measureLayout
             const elementPromise = new Promise<Point | null>((resolve) => {
-              start.element!.current.measureLayout(
-                containerRef.current,
+              start.element!.current!.measureLayout(
+                containerRef.current!,
                 (x: number, y: number, width: number, height: number) => {
                   const layout = {
                     x: 0,
@@ -416,37 +540,40 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
               );
             });
 
-            // Point is already relative to container (no conversion needed)
             const relativeStartPoint = await elementPromise;
-
             if (relativeStartPoint) {
               setStartPoint(relativeStartPoint);
               setEndPoint(end.point);
-              setElementsReadyWithLog(true);
+              setElementsReady(true);
+
+              previousPointsRef.current = {
+                start: relativeStartPoint,
+                end: end.point,
+              };
             } else {
-              setElementsReadyWithLog(false);
+              setElementsReady(false);
             }
           } else {
-            // No container: points are absolute coordinates (legacy behavior)
             const startLayout = await measureElementWithLayout(start.element);
             if (startLayout) {
               const rawStartPoint = getSocketPoint(startLayout, startSocket);
               setStartPoint(rawStartPoint);
               setEndPoint(end.point);
-              setElementsReadyWithLog(true);
+              setElementsReady(true);
+
+              previousPointsRef.current = {
+                start: rawStartPoint,
+                end: end.point,
+              };
             } else {
-              setElementsReadyWithLog(false);
+              setElementsReady(false);
             }
           }
         } else if (start.point && end.element?.current) {
-
           if (containerRef?.current) {
-            // Points are relative to container (like original leader-line)
-
-            // Get element coordinates relative to container using measureLayout
             const elementPromise = new Promise<Point | null>((resolve) => {
-              end.element!.current.measureLayout(
-                containerRef.current,
+              end.element!.current!.measureLayout(
+                containerRef.current!,
                 (x: number, y: number, width: number, height: number) => {
                   const layout = {
                     x: 0,
@@ -466,66 +593,62 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
               );
             });
 
-            // Point is already relative to container (no conversion needed)
             const relativeEndPoint = await elementPromise;
-
             if (relativeEndPoint) {
               setStartPoint(start.point);
               setEndPoint(relativeEndPoint);
-              setElementsReadyWithLog(true);
+              setElementsReady(true);
+
+              previousPointsRef.current = {
+                start: start.point,
+                end: relativeEndPoint,
+              };
             } else {
-              setElementsReadyWithLog(false);
+              setElementsReady(false);
             }
           } else {
-            // No container: points are absolute coordinates (legacy behavior)
             const endLayout = await measureElementWithLayout(end.element);
             if (endLayout) {
               const rawEndPoint = getSocketPoint(endLayout, endSocket);
               setStartPoint(start.point);
               setEndPoint(rawEndPoint);
-              setElementsReadyWithLog(true);
+              setElementsReady(true);
+
+              previousPointsRef.current = {
+                start: start.point,
+                end: rawEndPoint,
+              };
             } else {
-              setElementsReadyWithLog(false);
+              setElementsReady(false);
             }
           }
         } else if (start.point && end.point) {
+          setStartPoint(start.point);
+          setEndPoint(end.point);
+          setElementsReady(true);
 
-          if (containerRef?.current) {
-            // Points are already relative to container (leader-line compatible)
-
-
-            setStartPoint(start.point);
-            setEndPoint(end.point);
-          } else {
-            // Use absolute coordinates
-            setStartPoint(start.point);
-            setEndPoint(end.point);
-          }
-
-          setElementsReadyWithLog(true);
+          previousPointsRef.current = {
+            start: start.point,
+            end: end.point,
+          };
         } else {
-          setElementsReadyWithLog(false);
+          setElementsReady(false);
         }
       } catch (error) {
-        console.error(
-          `[LeaderLine] Error calculating points: testID: ${testID}`,
-          error
-        );
-        setElementsReadyWithLog(false);
+        setElementsReady(false);
       }
     };
 
-    // Add a delay to ensure elements are laid out first
+    // Reduced debounce for faster initial response
     const timer = setTimeout(() => {
-      calculatePoints();
-    }, 100);
+      calculateInitialPoints();
+    }, 10); // Further reduced from 16ms to 10ms for immediate response
 
     return () => clearTimeout(timer);
   }, [start, end, startSocket, endSocket, containerRef]);
 
   /**
-   * @description Prepare labels configuration for multi-label support
-   * Memoized to prevent unnecessary recalculations
+   * Prepare labels configuration for multi-label support
    */
   const labels = useMemo(
     () => ({
@@ -539,20 +662,17 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   );
 
   /**
-   * @description Generate label render data using the multi-label hook
+   * Generate label render data using the multi-label hook
    */
   const { labelRenderData } = useMultipleLabels(startPoint, endPoint, labels);
 
   /**
-   * @description Update SVG bounding box when points or styling changes
-   * This ensures the SVG container is large enough to contain the entire line
+   * Update SVG bounds when points change
    */
   useEffect(() => {
     if (startPoint && endPoint) {
-      console.log(`[LeaderLine] Updating SVG bounds... testID: ${testID}`);
       const pathType = typeof path === "string" ? path : path.type;
       const normalizedMainOutline = normalizeOutlineOptions(outline);
-
 
       const newBounds = calculatePathBoundingBoxWithOutline(
         startPoint,
@@ -563,26 +683,23 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
         normalizedMainOutline
       );
 
-      // Add padding to prevent clipping and ensure positive positioning
       const padding = 20;
       const rawX = newBounds.x - padding;
       const rawY = newBounds.y - padding;
 
       const finalBounds = {
-        x: Math.max(0, rawX), // Ensure SVG is never positioned negatively
-        y: Math.max(0, rawY), // Ensure SVG is never positioned negatively
-        width: newBounds.width + padding * 2 + Math.max(0, -rawX), // Adjust width if x was clamped
-        height: newBounds.height + padding * 2 + Math.max(0, -rawY), // Adjust height if y was clamped
+        x: Math.max(0, rawX),
+        y: Math.max(0, rawY),
+        width: newBounds.width + padding * 2 + Math.max(0, -rawX),
+        height: newBounds.height + padding * 2 + Math.max(0, -rawY),
       };
 
       setSvgBounds(finalBounds);
-    } else {
     }
   }, [startPoint, endPoint, path, curvature, strokeWidth, outline]);
 
   /**
-   * @description Calculate coordinate offset for SVG positioning
-   * Memoized to avoid recalculation
+   * Calculate coordinate offset for SVG positioning
    */
   const coordinateOffset = useMemo(() => {
     if (!startPoint || !endPoint) return { x: 0, y: 0 };
@@ -604,13 +721,100 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   }, [startPoint, endPoint, path, curvature, strokeWidth, outline]);
 
   /**
-   * @description Generate SVG path data for the line
-   * Memoized for performance optimization
+   * Calculate SVG style with corrected positioning
+   */
+  const svgStyle = useMemo(() => {
+    if (!startPoint || !endPoint)
+      return { position: "relative" as const, left: 0, top: 0 };
+
+    // Use coordinateOffset for consistent positioning
+    return {
+      position: "absolute" as const,
+      left: coordinateOffset.x,
+      top: coordinateOffset.y,
+    };
+  }, [startPoint, endPoint, coordinateOffset]);
+
+  /**
+   * Generate SVG path data for the line (corrected positioning)
    */
   const pathData = useMemo(() => {
     if (!startPoint || !endPoint) return "";
 
-    // Adjust coordinates relative to SVG bounds to handle negative positioning
+    try {
+      // Ajustar coordenadas relativas a la nueva posición del SVG
+      const adjustedStart = {
+        x: startPoint.x - coordinateOffset.x,
+        y: startPoint.y - coordinateOffset.y,
+      };
+      const adjustedEnd = {
+        x: endPoint.x - coordinateOffset.x,
+        y: endPoint.y - coordinateOffset.y,
+      };
+
+      const pathDataResult = generateEnhancedPathData(
+        adjustedStart,
+        adjustedEnd,
+        path,
+        curvature
+      );
+
+      // Validate path data
+      if (!pathDataResult || pathDataResult.length === 0) {
+        // Fallback to simple line
+        return `M ${adjustedStart.x} ${adjustedStart.y} L ${adjustedEnd.x} ${adjustedEnd.y}`;
+      }
+
+      return pathDataResult;
+    } catch (error) {
+      // Fallback to simple line in case of error
+      const adjustedStart = {
+        x: startPoint.x - coordinateOffset.x,
+        y: startPoint.y - coordinateOffset.y,
+      };
+      const adjustedEnd = {
+        x: endPoint.x - coordinateOffset.x,
+        y: endPoint.y - coordinateOffset.y,
+      };
+      return `M ${adjustedStart.x} ${adjustedStart.y} L ${adjustedEnd.x} ${adjustedEnd.y}`;
+    }
+  }, [startPoint, endPoint, path, curvature, coordinateOffset]);
+
+  /**
+   * Normalize outline options with default values
+   */
+  const normalizedMainOutline = useMemo(() => {
+    return normalizeOutlineOptions(outline);
+  }, [outline]);
+
+  /**
+   * Create SVG paths for start and end plugs/markers as direct paths
+   */
+  const startPlugPath = useMemo(() => {
+    try {
+      const path = createEnhancedPlugPath(startPlug, startPlugSize);
+      return path && path.length > 0 ? path : null;
+    } catch (error) {
+      return null;
+    }
+  }, [startPlug, startPlugSize]);
+
+  const endPlugPath = useMemo(() => {
+    try {
+      const path = createEnhancedPlugPath(endPlug, endPlugSize);
+      return path && path.length > 0 ? path : null;
+    } catch (error) {
+      return null;
+    }
+  }, [endPlug, endPlugSize]);
+
+  /**
+   * Calculate transforms for drawing plugs as direct paths
+   */
+  const plugTransforms = useMemo(() => {
+    if (!startPoint || !endPoint) return null;
+
+    // Use the same coordinate adjustment as labels and behind plugs
     const adjustedStart = {
       x: startPoint.x - coordinateOffset.x,
       y: startPoint.y - coordinateOffset.y,
@@ -620,46 +824,23 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
       y: endPoint.y - coordinateOffset.y,
     };
 
-
-    return generateEnhancedPathData(
-      adjustedStart,
-      adjustedEnd,
-      path,
-      curvature
-    );
-  }, [startPoint, endPoint, path, curvature, coordinateOffset, testID]);
-
+    return {
+      start: calculatePlugTransform(
+        adjustedStart,
+        adjustedEnd,
+        false,
+        startPlugSize
+      ),
+      end: calculatePlugTransform(
+        adjustedStart,
+        adjustedEnd,
+        true,
+        endPlugSize
+      ),
+    };
+  }, [startPoint, endPoint, coordinateOffset, path, curvature]);
   /**
-   * @description Normalize outline options with default values
-   * Memoized to prevent object recreation on each render
-   */
-  const normalizedMainOutline = useMemo(() => {
-    return normalizeOutlineOptions(outline);
-  }, [outline]);
-
-  const normalizedStartPlugOutline = useMemo(() => {
-    return normalizePlugOutlineOptions(startPlugOutline);
-  }, [startPlugOutline]);
-
-  const normalizedEndPlugOutline = useMemo(() => {
-    return normalizePlugOutlineOptions(endPlugOutline);
-  }, [endPlugOutline]);
-
-  /**
-   * @description Create SVG paths for start and end plugs/markers
-   * Memoized for performance
-   */
-  const startPlugPath = useMemo(() => {
-    return createEnhancedPlugPath(startPlug, startPlugSize);
-  }, [startPlug, startPlugSize]);
-
-  const endPlugPath = useMemo(() => {
-    return createEnhancedPlugPath(endPlug, endPlugSize);
-  }, [endPlug, endPlugSize]);
-
-  /**
-   * @description Render drop shadow effect if enabled
-   * @returns {React.ReactElement|null} Shadow path element or null
+   * Render drop shadow effect if enabled
    */
   const renderDropShadow = useCallback(() => {
     if (!dropShadow) return null;
@@ -689,8 +870,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   }, [dropShadow, pathData, strokeWidth]);
 
   /**
-   * @description Render simple label (legacy support)
-   * @returns {React.ReactElement|null} SVG text element or null
+   * Render simple label (legacy support)
    */
   const renderLabel = useCallback(() => {
     if (!label || !startPoint || !endPoint) return null;
@@ -717,15 +897,14 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   }, [label, startPoint, endPoint, coordinateOffset]);
 
   /**
-   * @description Render multiple enhanced labels as React Native Views
-   * @returns {React.ReactElement[]} Array of label View components
+   * Render multiple enhanced labels as React Native Views
    */
   const renderMultipleLabels = useCallback(() => {
     return labelRenderData.map(({ key, config, position }) => {
       const labelStyle = {
         position: "absolute" as const,
-        left: position.x - 50, // Center horizontally
-        top: position.y - 15, // Center vertically
+        left: position.x - 50,
+        top: position.y - 15,
         backgroundColor: config.backgroundColor,
         borderRadius: config.borderRadius,
         padding: typeof config.padding === "number" ? config.padding : 4,
@@ -751,21 +930,19 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     });
   }, [labelRenderData]);
 
-  // Log current state on every render
-
   // Early return if no connection points are available
   if (!startPoint || !endPoint || !elementsReady) {
     return (
       <View
-        style={[{ 
-        position: "relative", 
-        zIndex: 999999,
-        backgroundColor: "rgba(0, 0, 255, 0.3)", // BLUE background to see the View container
-        borderWidth: 3,
-        borderColor: "rgba(255, 0, 255, 0.8)", // MAGENTA border for View container
-        minWidth: 50,
-        minHeight: 50
-      }, style]}
+        style={[
+          {
+            position: "relative",
+            zIndex: 999999,
+            minWidth: 50,
+            minHeight: 50,
+          },
+          style,
+        ]}
         testID={testID}
       >
         {children}
@@ -773,116 +950,32 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     );
   }
 
-
-  // Log the path data being generated
-
-
-  // Log coordinate system analysis
-
   return (
     <View
-      style={[{ 
-        position: "relative", 
-        zIndex: 999999,
-        backgroundColor: "rgba(0, 0, 255, 0.3)", // BLUE background to see the View container
-        borderWidth: 3,
-        borderColor: "rgba(255, 0, 255, 0.8)", // MAGENTA border for View container
-        minWidth: 50,
-        minHeight: 50
-      }, style]}
+      ref={leaderLineContainerRef}
+      style={[
+        {
+          position: "absolute",
+          zIndex: 999999,
+          minWidth: 50,
+          minHeight: 50,
+        },
+        style,
+      ]}
       testID={testID}
-      onLayout={(event) => {
-      }}
+      onLayout={() => {}}
     >
       <Svg
         width={svgBounds.width}
         height={svgBounds.height}
-        style={{
-          position: "absolute",
-          left: 0,    // FORCED POSITION FOR TESTING
-          top: 0,     // FORCED POSITION FOR TESTING
-          backgroundColor: "rgba(255, 0, 0, 0.2)", // Semi-transparent red background for debugging
-          borderWidth: 2,
-          borderColor: "rgba(0, 255, 0, 0.8)", // Green border for debugging
-        }}
+        style={svgStyle}
         testID="svg"
         accessibilityLabel="Leader line connection"
         accessibilityRole="image"
         accessibilityHint="Visual connection between UI elements"
-        onLayout={(event) => {
-        }}
+        onLayout={() => {}}
       >
-        <Defs>
-          {/* Start plug marker definition */}
-          {startPlug !== "none" && startPlug !== "behind" && (
-            <Marker
-              id="start-marker"
-              markerWidth={startPlugSize}
-              markerHeight={startPlugSize}
-              refX={0}
-              refY={startPlugSize / 2}
-              orient="auto"
-            >
-              {/* Outline for start plug */}
-              {normalizedStartPlugOutline && (
-                <Path
-                  d={startPlugPath}
-                  fill={
-                    normalizedStartPlugOutline.color === "auto"
-                      ? startPlugColor || color
-                      : normalizedStartPlugOutline.color
-                  }
-                  opacity={normalizedStartPlugOutline.opacity || 1}
-                  transform={`scale(${
-                    1 + (normalizedStartPlugOutline.width || 1) * 0.1
-                  })`}
-                />
-              )}
-              <Path d={startPlugPath} fill={startPlugColor || color} />
-            </Marker>
-          )}
-
-          {/* End plug marker definition */}
-          {endPlug !== "none" && endPlug !== "behind" && (
-            <Marker
-              id="end-marker"
-              markerWidth={endPlugSize}
-              markerHeight={endPlugSize}
-              refX={endPlugSize}
-              refY={endPlugSize / 2}
-              orient="auto"
-            >
-              {/* Outline for end plug */}
-              {normalizedEndPlugOutline && (
-                <Path
-                  d={endPlugPath}
-                  fill={
-                    normalizedEndPlugOutline.color === "auto"
-                      ? endPlugColor || color
-                      : normalizedEndPlugOutline.color
-                  }
-                  opacity={normalizedEndPlugOutline.opacity || 1}
-                  transform={`scale(${
-                    1 + (normalizedEndPlugOutline.width || 1) * 0.1
-                  })`}
-                />
-              )}
-              <Path d={endPlugPath} fill={endPlugColor || color} />
-            </Marker>
-          )}
-        </Defs>
-
-        {/* Debug background rectangle */}
-        <Rect
-          x="0"
-          y="0"
-          width={svgBounds.width}
-          height={svgBounds.height}
-          fill="rgba(255, 255, 0, 0.1)"
-          stroke="rgba(0, 0, 255, 0.5)"
-          strokeWidth="1"
-          strokeDasharray="5,5"
-        />
+        {/* No more Defs section with problematic markers */}
 
         {/* Drop shadow layer */}
         {renderDropShadow()}
@@ -903,26 +996,39 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           />
         )}
 
-        {/* Main path */}
+        {/* Main path - NO MARKERS */}
         <Path
           d={pathData}
           stroke={color}
-          strokeWidth={strokeWidth}
+          strokeWidth={Math.max(0.1, strokeWidth)}
           fill="none"
-          opacity={opacity}
+          opacity={Math.max(0, Math.min(1, opacity))}
           strokeDasharray={dash ? generateDashArray(dash) : undefined}
-          markerStart={
-            startPlug !== "none" && startPlug !== "behind"
-              ? "url(#start-marker)"
-              : undefined
-          }
-          markerEnd={
-            endPlug !== "none" && endPlug !== "behind"
-              ? "url(#end-marker)"
-              : undefined
-          }
           testID="path"
         />
+
+        {/* Draw plugs as direct paths to avoid marker issues */}
+        {startPlug !== "none" &&
+          startPlug !== "behind" &&
+          startPlugPath &&
+          plugTransforms && (
+            <Path
+              d={startPlugPath}
+              fill={startPlugColor || color}
+              transform={`translate(${plugTransforms.start.position.x}, ${plugTransforms.start.position.y}) rotate(${plugTransforms.start.rotation})`}
+            />
+          )}
+
+        {endPlug !== "none" &&
+          endPlug !== "behind" &&
+          endPlugPath &&
+          plugTransforms && (
+            <Path
+              d={endPlugPath}
+              fill={endPlugColor || color}
+              transform={`translate(${plugTransforms.end.position.x}, ${plugTransforms.end.position.y}) rotate(${plugTransforms.end.rotation})`}
+            />
+          )}
 
         {/* Behind plugs (rendered after the line) */}
         {startPlug === "behind" && (
@@ -958,16 +1064,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
 };
 
 /**
- * @namespace LeaderLineEnhanced
- * @description Enhanced exports with anchor creation functions for compatibility with original API
- *
- * @example Using anchor functions
- * ```tsx
- * import { LeaderLineEnhanced } from 'react-native-leader-line';
- *
- * const pointAnchor = LeaderLineEnhanced.pointAnchor(elementRef, 10, 20);
- * const areaAnchor = LeaderLineEnhanced.areaAnchor(elementRef, 0, 0, 100, 50);
- * ```
+ * Enhanced exports with anchor creation functions for compatibility with original API
  */
 export const LeaderLineEnhanced = {
   pointAnchor,

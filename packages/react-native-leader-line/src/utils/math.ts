@@ -32,6 +32,45 @@ export const getAngle = (p1: Point, p2: Point): number => {
 };
 
 /**
+ * Calculate the angle between two points in degrees
+ */
+export const getAngleDegrees = (p1: Point, p2: Point): number => {
+  return (getAngle(p1, p2) * 180) / Math.PI;
+};
+
+/**
+ * Calculate plug position and rotation for drawing as a regular path
+ */
+export const calculatePlugTransform = (
+  start: Point,
+  end: Point,
+  isEndPlug: boolean = true,
+  plugSize: number = 8
+): { position: Point; rotation: number } => {
+  const angle = getAngleDegrees(start, end);
+
+  if (isEndPlug) {
+    // For end plug, position it exactly at the end point
+    return {
+      position: {
+        x: end.x,
+        y: end.y,
+      },
+      rotation: angle,
+    };
+  } else {
+    // For start plug, position it exactly at the start point
+    return {
+      position: {
+        x: start.x,
+        y: start.y,
+      },
+      rotation: angle + 180, // Opposite direction for start plug
+    };
+  }
+};
+
+/**
  * Get the socket point for an element based on socket position
  */
 export const getSocketPoint = (
@@ -39,10 +78,9 @@ export const getSocketPoint = (
   socket: SocketPosition
 ): Point => {
   const { pageX, pageY, width, height } = layout;
-  
 
   let result: Point;
-  
+
   switch (socket) {
     case "top":
       result = { x: pageX + width / 2, y: pageY };
@@ -90,15 +128,9 @@ export const measureElement = async (
   }
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    
     const layout = await new Promise<ElementLayout | null>((resolve) => {
       element.current.measureInWindow(
-        (
-          x: number,
-          y: number,
-          width: number,
-          height: number
-        ) => {
+        (x: number, y: number, width: number, height: number) => {
           const result = {
             x: 0, // measureInWindow doesn't provide local coordinates
             y: 0,
@@ -108,8 +140,7 @@ export const measureElement = async (
             pageY: y,
             timestamp: Date.now(),
           };
-          
-          
+
           resolve(result);
         }
       );
@@ -130,7 +161,9 @@ export const measureElement = async (
     }
 
     // Wait before retrying
-    await new Promise<void>(resolve => setTimeout(() => resolve(), retryDelay));
+    await new Promise<void>((resolve) =>
+      setTimeout(() => resolve(), retryDelay)
+    );
   }
 
   return null;
@@ -142,19 +175,13 @@ export const measureElement = async (
 export const measureElementInWindow = async (
   element: React.RefObject<any>
 ): Promise<ElementLayout | null> => {
-  
   if (!element.current) {
     return null;
   }
 
   return new Promise((resolve) => {
     element.current.measureInWindow(
-      (
-        x: number,
-        y: number,
-        width: number,
-        height: number
-      ) => {
+      (x: number, y: number, width: number, height: number) => {
         const result = {
           x: 0, // measureInWindow doesn't provide local coordinates
           y: 0,
@@ -164,8 +191,7 @@ export const measureElementInWindow = async (
           pageY: y,
           timestamp: Date.now(),
         };
-        
-        
+
         resolve(result);
       }
     );
@@ -178,18 +204,17 @@ export const measureElementInWindow = async (
 export const measureElementWithLayout = async (
   element: React.RefObject<any>
 ): Promise<ElementLayout | null> => {
-  
   if (!element.current) {
     return null;
   }
 
   // Use measureElement which now uses measureInWindow internally
   const result = await measureElement(element, 10, 150);
-  
+
   if (result) {
   } else {
   }
-  
+
   return result;
 };
 
@@ -207,7 +232,9 @@ export const measureRelativeToContainer = async (
   // If no container, use absolute coordinates
   if (!containerRef?.current) {
     const elementLayout = await measureElementWithLayout(element);
-    return elementLayout ? { x: elementLayout.pageX, y: elementLayout.pageY } : null;
+    return elementLayout
+      ? { x: elementLayout.pageX, y: elementLayout.pageY }
+      : null;
   }
 
   return new Promise((resolve) => {
@@ -219,7 +246,7 @@ export const measureRelativeToContainer = async (
       },
       () => {
         // Fallback to absolute measurement
-        measureElementWithLayout(element).then(layout => {
+        measureElementWithLayout(element).then((layout) => {
           resolve(layout ? { x: layout.pageX, y: layout.pageY } : null);
         });
       }
@@ -238,30 +265,27 @@ export const getContainerOffset = async (
   }
 
   try {
-    
     // Use measureElementWithLayout for consistency
     const containerLayout = await measureElementWithLayout(containerRef);
-    
+
     if (containerLayout) {
       // For ScrollView, we might need to account for scroll offset
       const scrollOffset = { x: 0, y: 0 };
-      
+
       // Check if it's a ScrollView by looking for _scrollViewRef
       if (containerRef.current._scrollViewRef) {
         // ScrollView doesn't directly expose scroll position in a sync way
         // We'll rely on the measureInWindow which should give us the current visible position
       }
-      
+
       const offset = {
         x: containerLayout.pageX + scrollOffset.x,
-        y: containerLayout.pageY + scrollOffset.y
+        y: containerLayout.pageY + scrollOffset.y,
       };
-      
-      
+
       return offset;
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 
   return { x: 0, y: 0 };
 };
@@ -280,10 +304,9 @@ export const convertPointToRelative = async (
   const containerOffset = await getContainerOffset(containerRef);
   const relativePoint = {
     x: point.x - containerOffset.x,
-    y: point.y - containerOffset.y
+    y: point.y - containerOffset.y,
   };
-  
-  
+
   return relativePoint;
 };
 
@@ -297,138 +320,153 @@ export const calculateConnectionPointsRelative = async (
   endSocket: SocketPosition = "center",
   containerRef?: React.RefObject<any>
 ): Promise<{ start: Point; end: Point } | null> => {
-
   if (!startElement || !endElement) {
     return null;
   }
 
-  try {
-    // First, let's investigate the actual container offset by measuring both absolute and relative positions
-    if (containerRef?.current) {
-      
-      // Measure container's absolute position on screen
-      const containerAbsolute = await measureElementWithLayout(containerRef);
-      
-      // Measure start element absolute position
-      const startAbsolute = await measureElementWithLayout({ current: startElement });
-    }
-    // Try to use measureLayout for more accurate relative positioning
-    const startPromise = new Promise<ElementLayout | null>((resolve) => {
-      if (!containerRef?.current) {
-        // Fallback to absolute measurement
-        measureElementWithLayout({ current: startElement }).then(resolve);
-        return;
-      }
+  return new Promise((resolve) => {
+    let startLayout: ElementLayout | null = null;
+    let endLayout: ElementLayout | null = null;
+    let containerLayout: ElementLayout | null = null;
+    let measurementsCompleted = 0;
+    const totalMeasurements = containerRef?.current ? 3 : 2;
 
-      startElement.measureLayout(
-        containerRef.current,
-        (x: number, y: number, width: number, height: number) => {
-          resolve({
-            x: 0,
-            y: 0,
-            width,
-            height,
-            pageX: x,
-            pageY: y,
-            timestamp: Date.now()
-          });
-        },
-        () => {
-          // Fallback on error
-          measureElementWithLayout({ current: startElement }).then(resolve);
+    const checkComplete = () => {
+      if (measurementsCompleted >= totalMeasurements) {
+        if (!startLayout || !endLayout) {
+          // Silent error handling for production
+          resolve(null);
+          return;
         }
-      );
-    });
 
-    const endPromise = new Promise<ElementLayout | null>((resolve) => {
-      if (!containerRef?.current) {
-        // Fallback to absolute measurement
-        measureElementWithLayout({ current: endElement }).then(resolve);
-        return;
-      }
+        // 🔧 FIX: Calculate offset correctly
+        let offsetX = 0;
+        let offsetY = 0;
 
-      endElement.measureLayout(
-        containerRef.current,
-        (x: number, y: number, width: number, height: number) => {
-          resolve({
-            x: 0,
-            y: 0,
-            width,
-            height,
-            pageX: x,
-            pageY: y,
-            timestamp: Date.now()
-          });
-        },
-        () => {
-          // Fallback on error
-          measureElementWithLayout({ current: endElement }).then(resolve);
+        if (containerLayout) {
+          // If we have container, use its pageX/pageY as base
+          offsetX = containerLayout.pageX;
+          offsetY = containerLayout.pageY;
+          // Container offset logs removed for performance
+        } else {
+          // If no container, find minimum offset
+          offsetX = Math.min(startLayout.pageX, endLayout.pageX);
+          offsetY = Math.min(startLayout.pageY, endLayout.pageY);
+          // No container logs removed for performance
         }
-      );
-    });
 
-    const [startLayout, endLayout] = await Promise.all([startPromise, endPromise]);
-
-    if (!startLayout || !endLayout) {
-      return null;
-    }
-
-    // Calculate the actual offset by comparing relative measurements with what we expect
-    if (containerRef?.current) {
-      const containerAbsolute = await measureElementWithLayout(containerRef);
-      const startAbsolute = await measureElementWithLayout({ current: startElement });
-      
-      if (containerAbsolute && startAbsolute) {
-        // Calculate expected relative position: startAbsolute - containerAbsolute
-        const expectedRelativeX = startAbsolute.pageX - containerAbsolute.pageX;
-        const expectedRelativeY = startAbsolute.pageY - containerAbsolute.pageY;
-        
-        // Compare with what measureLayout gives us
-        const actualRelativeX = startLayout.pageX;
-        const actualRelativeY = startLayout.pageY;
-        
-        // Calculate the offset difference
-        const offsetX = actualRelativeX - expectedRelativeX;
-        const offsetY = actualRelativeY - expectedRelativeY;
-        
-        
-        // Apply offset correction to make coordinates truly relative to container's visible area
-        const correctedStartLayout = {
+        // 🔧 FIX: Adjust coordinates by subtracting container offset
+        const adjustedStartLayout = {
           ...startLayout,
-          pageX: expectedRelativeX,
-          pageY: expectedRelativeY
+          pageX: startLayout.pageX - offsetX,
+          pageY: startLayout.pageY - offsetY,
         };
-        
-        const endAbsolute = await measureElementWithLayout({ current: endElement });
-        const expectedEndRelativeX = endAbsolute!.pageX - containerAbsolute.pageX;
-        const expectedEndRelativeY = endAbsolute!.pageY - containerAbsolute.pageY;
-        
-        const correctedEndLayout = {
+
+        const adjustedEndLayout = {
           ...endLayout,
-          pageX: expectedEndRelativeX,
-          pageY: expectedEndRelativeY
+          pageX: endLayout.pageX - offsetX,
+          pageY: endLayout.pageY - offsetY,
         };
-        
-        
-        const correctedStartPoint = getSocketPoint(correctedStartLayout, startSocket);
-        const correctedEndPoint = getSocketPoint(correctedEndLayout, endSocket);
-        
-        
-        return { start: correctedStartPoint, end: correctedEndPoint };
+
+        // All verbose logging removed for performance
+        const startPoint = getSocketPoint(adjustedStartLayout, startSocket);
+        const endPoint = getSocketPoint(adjustedEndLayout, endSocket);
+
+        // Verificación de coherencia (silent in production)
+        const isCoherent =
+          Math.abs(
+            startPoint.x - (startLayout.pageX + startLayout.width / 2 - offsetX)
+          ) < 1 &&
+          Math.abs(
+            startPoint.y -
+              (startLayout.pageY + startLayout.height / 2 - offsetY)
+          ) < 1;
+        // Coherence logging removed for performance
+
+        resolve({
+          start: startPoint,
+          end: endPoint,
+        });
       }
+    };
+
+    // Measure start element
+    startElement.measure(
+      (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number
+      ) => {
+        startLayout = {
+          x,
+          y,
+          width,
+          height,
+          pageX,
+          pageY,
+          timestamp: Date.now(),
+        };
+        // Logging removed for performance
+        measurementsCompleted++;
+        checkComplete();
+      }
+    );
+
+    // Measure end element
+    endElement.measure(
+      (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number
+      ) => {
+        endLayout = {
+          x,
+          y,
+          width,
+          height,
+          pageX,
+          pageY,
+          timestamp: Date.now(),
+        };
+        // Logging removed for performance
+        measurementsCompleted++;
+        checkComplete();
+      }
+    );
+
+    // Measure container if provided
+    if (containerRef?.current) {
+      containerRef.current.measure(
+        (
+          x: number,
+          y: number,
+          width: number,
+          height: number,
+          pageX: number,
+          pageY: number
+        ) => {
+          containerLayout = {
+            x,
+            y,
+            width,
+            height,
+            pageX,
+            pageY,
+            timestamp: Date.now(),
+          };
+          // Logging removed for performance
+          measurementsCompleted++;
+          checkComplete();
+        }
+      );
     }
-
-    // Fallback to original logic if offset correction fails
-    
-    const startPoint = getSocketPoint(startLayout, startSocket);
-    const endPoint = getSocketPoint(endLayout, endSocket);
-
-
-    return { start: startPoint, end: endPoint };
-  } catch (error) {
-    // Fallback to original method
-    return calculateConnectionPoints(startElement, endElement, startSocket, endSocket, containerRef);
-  }
+  });
 };
 
 /**
@@ -441,12 +479,11 @@ export const calculateConnectionPoints = async (
   endSocket: SocketPosition = "center",
   containerRef?: React.RefObject<any>
 ): Promise<{ start: Point; end: Point } | null> => {
-  
   // Get container offset first
   const containerOffset = await getContainerOffset(containerRef);
-  
+
   const startLayout = await measureElementWithLayout({ current: startElement });
-  
+
   const endLayout = await measureElementWithLayout({ current: endElement });
 
   if (!startLayout || !endLayout) {
@@ -456,13 +493,14 @@ export const calculateConnectionPoints = async (
   // Additional validation for measurement quality
   const startValid = isValidMeasurement(startLayout);
   const endValid = isValidMeasurement(endLayout);
-  
 
   // If either measurement is invalid, we should still try to render but warn
   if (!startValid || !endValid) {
-    
     // Try to proceed anyway if we have some reasonable dimensions
-    if ((startLayout.width === 0 || startLayout.height === 0) && (endLayout.width === 0 || endLayout.height === 0)) {
+    if (
+      (startLayout.width === 0 || startLayout.height === 0) &&
+      (endLayout.width === 0 || endLayout.height === 0)
+    ) {
       return null;
     }
   }
@@ -473,19 +511,23 @@ export const calculateConnectionPoints = async (
   // Adjust coordinates relative to container to account for nav bars and other elements
   const startPoint = {
     x: rawStartPoint.x - containerOffset.x,
-    y: rawStartPoint.y - containerOffset.y
+    y: rawStartPoint.y - containerOffset.y,
   };
   const endPoint = {
     x: rawEndPoint.x - containerOffset.x,
-    y: rawEndPoint.y - containerOffset.y
+    y: rawEndPoint.y - containerOffset.y,
   };
 
-
   // Validate that we got reasonable coordinates
-  if (isNaN(startPoint.x) || isNaN(startPoint.y) || isNaN(endPoint.x) || isNaN(endPoint.y)) {
+  if (
+    isNaN(startPoint.x) ||
+    isNaN(startPoint.y) ||
+    isNaN(endPoint.x) ||
+    isNaN(endPoint.y)
+  ) {
     return null;
   }
-  
+
   // Additional validation for negative coordinates
   if (startPoint.x < 0 || startPoint.y < 0) {
   }
@@ -493,7 +535,7 @@ export const calculateConnectionPoints = async (
   }
 
   const result = { start: startPoint, end: endPoint };
-  
+
   return result;
 };
 
@@ -555,43 +597,57 @@ export const createPlugPath = (
   plugType: PlugType,
   size: number = 8
 ): string => {
-  const halfSize = size / 2;
+  // Validate and normalize size
+  const normalizedSize = Math.max(1, Math.min(100, size));
+  const halfSize = normalizedSize / 2;
 
-  switch (plugType) {
-    case "arrow1":
-      return `M 0 0 L ${size} ${halfSize} L 0 ${size} z`;
+  // Validate plug type
+  if (!plugType || plugType === "none" || plugType === "behind") {
+    return "";
+  }
 
-    case "arrow2":
-      return `M 0 ${halfSize} L ${size} 0 L ${
-        size * 0.8
-      } ${halfSize} L ${size} ${size} z`;
+  try {
+    // Create paths centered at origin (0,0) for easier transformation
+    switch (plugType) {
+      case "arrow1":
+        return `M ${-halfSize} ${-halfSize} L ${halfSize} 0 L ${-halfSize} ${halfSize} z`;
 
-    case "arrow3":
-      return `M 0 ${halfSize} L ${size} 0 L ${
-        size * 0.6
-      } ${halfSize} L ${size} ${size} z`;
+      case "arrow2":
+        return `M ${-halfSize} 0 L ${halfSize} ${-halfSize} L ${
+          halfSize * 0.8
+        } 0 L ${halfSize} ${halfSize} z`;
 
-    case "disc":
-      return `M ${halfSize} ${halfSize} m -${halfSize} 0 a ${halfSize} ${halfSize} 0 1 0 ${size} 0 a ${halfSize} ${halfSize} 0 1 0 -${size} 0`;
+      case "arrow3":
+        return `M ${-halfSize} 0 L ${halfSize} ${-halfSize} L ${
+          halfSize * 0.6
+        } 0 L ${halfSize} ${halfSize} z`;
 
-    case "square":
-      return `M 0 0 L ${size} 0 L ${size} ${size} L 0 ${size} z`;
+      case "disc":
+        return `M 0 0 m -${halfSize} 0 a ${halfSize} ${halfSize} 0 1 0 ${normalizedSize} 0 a ${halfSize} ${halfSize} 0 1 0 -${normalizedSize} 0`;
 
-    case "diamond":
-      return `M ${halfSize} 0 L ${size} ${halfSize} L ${halfSize} ${size} L 0 ${halfSize} z`;
+      case "square":
+        return `M ${-halfSize} ${-halfSize} L ${halfSize} ${-halfSize} L ${halfSize} ${halfSize} L ${-halfSize} ${halfSize} z`;
 
-    case "hand":
-      return `M 0 ${halfSize} L ${size * 0.6} 0 L ${size} ${halfSize * 0.3} L ${
-        size * 0.8
-      } ${halfSize} L ${size} ${halfSize * 1.7} L ${size * 0.6} ${size} z`;
+      case "diamond":
+        return `M 0 ${-halfSize} L ${halfSize} 0 L 0 ${halfSize} L ${-halfSize} 0 z`;
 
-    case "crosshair":
-      return `M ${halfSize} 0 L ${halfSize} ${size} M 0 ${halfSize} L ${size} ${halfSize}`;
+      case "hand":
+        return `M ${-halfSize} 0 L ${
+          halfSize * 0.6
+        } ${-halfSize} L ${halfSize} ${-halfSize * 0.3} L ${
+          halfSize * 0.8
+        } 0 L ${halfSize} ${halfSize * 0.7} L ${halfSize * 0.6} ${halfSize} z`;
 
-    case "none":
-    case "behind":
-    default:
-      return "";
+      case "crosshair":
+        return `M 0 ${-halfSize} L 0 ${halfSize} M ${-halfSize} 0 L ${halfSize} 0`;
+
+      default:
+        // Fallback to simple arrow if unknown plug type
+        return `M ${-halfSize} ${-halfSize} L ${halfSize} 0 L ${-halfSize} ${halfSize} z`;
+    }
+  } catch (error) {
+    // Fallback in case of any calculation error
+    return `M ${-halfSize} ${-halfSize} L ${halfSize} 0 L ${-halfSize} ${halfSize} z`;
   }
 };
 
@@ -599,6 +655,66 @@ export const createPlugPath = (
  * Enhanced plug path creation
  */
 export const createEnhancedPlugPath = createPlugPath;
+
+/**
+ * Create a direct arrow path at a specific position and rotation
+ * This replaces the problematic marker system
+ */
+export const createDirectArrowPath = (
+  plugType: PlugType,
+  position: Point,
+  rotation: number,
+  size: number = 8
+): string => {
+  if (!plugType || plugType === "none" || plugType === "behind") {
+    return "";
+  }
+
+  // Validate and normalize inputs
+  const normalizedSize = Math.max(1, Math.min(100, size));
+  const normalizedRotation = rotation || 0;
+
+  try {
+    // Get base path
+    const basePath = createPlugPath(plugType, normalizedSize);
+    if (!basePath) return "";
+
+    // Create transform for position and rotation
+    const transform = `translate(${position.x}, ${
+      position.y
+    }) rotate(${normalizedRotation}) translate(${-normalizedSize / 2}, ${
+      -normalizedSize / 2
+    })`;
+
+    // Return path with transform applied via a group
+    return `<g transform="${transform}"><path d="${basePath}"/></g>`;
+  } catch (error) {
+    return "";
+  }
+};
+
+/**
+ * Create arrow path positioned at line end without using markers
+ */
+export const createArrowAtEnd = (
+  start: Point,
+  end: Point,
+  plugType: PlugType,
+  size: number,
+  isStartPlug: boolean = false
+): string => {
+  if (!plugType || plugType === "none" || plugType === "behind") {
+    return "";
+  }
+
+  const transform = calculatePlugTransform(start, end, !isStartPlug);
+  return createDirectArrowPath(
+    plugType,
+    transform.position,
+    transform.rotation,
+    size
+  );
+};
 
 /**
  * Generate dash array from dash options
@@ -662,11 +778,10 @@ export const calculatePathBoundingBoxWithOutline = (
   strokeWidth: number,
   outline: any
 ): BoundingBox => {
-  
   // Validate points before calculating bounds
   if (start.x === 0 && start.y === 0 && end.x === 0 && end.y === 0) {
   }
-  
+
   const baseBounds = calculatePathBoundingBox(
     start,
     end,
@@ -674,8 +789,7 @@ export const calculatePathBoundingBoxWithOutline = (
     curvature,
     strokeWidth
   );
-  
-  
+
   const outlineWidth = outline?.width || outline?.size || 0;
 
   const result = {
@@ -684,8 +798,7 @@ export const calculatePathBoundingBoxWithOutline = (
     width: baseBounds.width + outlineWidth * 2,
     height: baseBounds.height + outlineWidth * 2,
   };
-  
-  
+
   return result;
 };
 

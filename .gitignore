@@ -48,3 +48,6 @@ expo-snacks/**/.expo-shared/
 expo-snacks/**/dist/
 expo-snacks/**/build/
 expo-snacks/**/*.log
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

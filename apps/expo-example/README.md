@@ -1,6 +1,12 @@
 # React Native Leader Line - Expo Example
 
-Interactive example app showcasing all features of the react-native-leader-line library using Expo.
+Interactive example app showcasing all features of the react-native-leader-line library us## 🗂️ Project Structure
+
+````text
+expo-example/
+├── src/
+│   ├── navigation/      # React Navigation setup
+│   ├── screens/         # Demo screenso.
 
 ## 🚀 Getting Started
 
@@ -20,7 +26,7 @@ yarn install
 
 # Build the library first
 yarn workspace react-native-leader-line build
-```
+````
 
 ### Running the Example
 
@@ -98,11 +104,52 @@ The app includes comprehensive examples organized by feature:
 - Dash patterns
 - Gradient lines
 
-## 🗂️ Project Structure
+## � Debug System
 
-```
+The example app includes a comprehensive debug system to help with development and troubleshooting:
+
+### **Accessing Debug Tools**
+
+- Tap the **🐛 Debug** button in the header of any demo screen
+- Opens a modal with debug toggles and controls
+
+### **Available Debug Options**
+
+1. **Console Logging** - Logs measurements and coordinates to console
+2. **Visual Markers** - Red/blue dots marking connection points
+3. **Line Labels** - Labels on lines for identification
+4. **Element Bounds** - Borders and backgrounds showing element areas
+5. **Coordinate Info** - Detailed coordinate information display
+6. **SVG Background** - Green background on LeaderLine SVG elements
+7. **Container Background** - Magenta background on LeaderLine containers
+8. **Early Return Background** - Blue background when LeaderLine isn't ready
+
+### **Debug Controls**
+
+- **Enable All / Disable All** - Master toggles for quick setup
+- **Individual Toggles** - Granular control over each debug element
+- **Persistent Settings** - Debug state maintained during session
+
+### **Usage Tips**
+
+- Use **Visual Markers** to verify connection points
+- Enable **Element Bounds** to see touch areas and layouts
+- Check **Console Logging** for measurement details
+- **SVG Background** helps identify LeaderLine render areas
+
+## �🗂️ Project Structure
+
+```text
 expo-example/
 ├── src/
+│   ├── contexts/        # React contexts
+│   │   ├── DebugContext.tsx
+│   │   └── DebugModalContext.tsx
+│   ├── hooks/           # Custom hooks
+│   │   └── useDebugMode.ts
+│   ├── components/      # Shared components
+│   │   ├── DebugPanel.tsx
+│   │   └── DebugMarkers.tsx
 │   ├── navigation/      # React Navigation setup
 │   ├── screens/         # Demo screens
 │   │   ├── HomeScreen.tsx
@@ -114,7 +161,7 @@ expo-example/
 │   │   ├── MultipleLinesDemo.tsx
 │   │   ├── ImperativeApiDemo.tsx
 │   │   └── EffectsDemo.tsx
-│   └── components/      # Shared components
+│   └── utils/           # Utility functions
 ├── App.tsx              # App entry point
 ├── package.json         # Dependencies
 └── tsconfig.json        # TypeScript config

@@ -8,6 +8,10 @@
   "scripts": {
     "bootstrap": "yarn install",
     "build": "yarn workspace react-native-leader-line build",
+    "dev:lib": "yarn workspace react-native-leader-line dev",
+    "dev:lib:verbose": "yarn workspace react-native-leader-line dev:verbose",
+    "dev:example": "yarn workspace expo-example start",
+    "dev:all": "concurrently \"yarn dev:lib\" \"yarn dev:example\"",
     "test": "yarn workspace react-native-leader-line test",
     "test:watch": "yarn workspace react-native-leader-line test:watch",
     "test:coverage": "yarn workspace react-native-leader-line test:coverage",
@@ -17,5 +21,8 @@
     "bare:start": "yarn workspace bare-example start",
     "bare:android": "yarn workspace bare-example android",
     "bare:ios": "yarn workspace bare-example ios"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

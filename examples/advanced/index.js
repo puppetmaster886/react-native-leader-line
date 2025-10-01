@@ -1,6 +1,0 @@
-import { AppRegistry } from 'react-native';
-import App from './App';
-
-AppRegistry.registerComponent('AdvancedExample', () => App);
-
-export default App;

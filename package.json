@@ -20,7 +20,10 @@
     "expo": "yarn workspace expo-example start",
     "bare:start": "yarn workspace bare-example start",
     "bare:android": "yarn workspace bare-example android",
-    "bare:ios": "yarn workspace bare-example ios"
+    "bare:ios": "yarn workspace bare-example ios",
+    "test:deploy": "./test-deploy.sh",
+    "check:deploy": "./pre-deploy-check.sh",
+    "serve:local": "cd apps/expo-example/dist && npx serve . -p 3000"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

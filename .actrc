@@ -1,0 +1,2 @@
+# act configuration
+platform_linux_amd64=ubuntu-latest=node:18-buster

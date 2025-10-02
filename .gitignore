@@ -1,0 +1,53 @@
+# Build output
+lib/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Test reports
+test-reports/
+
+# Temporary folders
+tmp/
+temp/
+
+# Expo Snacks
+expo-snacks/**/node_modules/
+expo-snacks/**/package-lock.json
+expo-snacks/**/yarn.lock
+expo-snacks/**/.expo/
+expo-snacks/**/.expo-shared/
+expo-snacks/**/dist/
+expo-snacks/**/build/
+expo-snacks/**/*.log
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

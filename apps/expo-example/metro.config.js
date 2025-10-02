@@ -23,4 +23,9 @@ config.resolver.extraNodeModules = {
   ),
 };
 
+// Configure public path for GitHub Pages
+if (process.env.NODE_ENV === 'production') {
+  config.resolver.platforms = ['web', ...config.resolver.platforms];
+}
+
 module.exports = config;

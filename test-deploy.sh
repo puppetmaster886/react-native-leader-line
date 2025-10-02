@@ -24,6 +24,18 @@ yarn install
 echo "🌐 Exporting Expo web app..."
 npx expo export -p web
 
+echo "🔧 Fixing asset paths for GitHub Pages..."
+# Use different sed syntax for macOS vs Linux
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  sed -i '' 's|href="/|href="/react-native-leader-line/|g' dist/index.html
+  sed -i '' 's|src="/_expo|src="/react-native-leader-line/_expo|g' dist/index.html
+else
+  # Linux
+  sed -i 's|href="/|href="/react-native-leader-line/|g' dist/index.html
+  sed -i 's|src="/_expo|src="/react-native-leader-line/_expo|g' dist/index.html
+fi
+
 echo "✅ Build completed successfully!"
 echo "📁 Output directory: $(pwd)/dist"
 echo "📋 Files generated:"

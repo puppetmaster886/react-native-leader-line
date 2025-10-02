@@ -11,6 +11,28 @@
 
 A React Native port of the popular [leader-line](https://github.com/anseki/leader-line) library for drawing arrow lines and connectors between UI components. This library brings the powerful line-drawing capabilities of leader-line to React Native applications, with additional fixes and enhancements from community forks.
 
+## 🎉 What's New in v1.4.2
+
+### 🧠 Intelligent Auto Socket Selection
+
+The `socket="auto"` option now intelligently selects the **closest connection point** from 9 available positions (center, 4 sides, 4 corners) instead of always using the center. This creates more natural-looking connections automatically!
+
+```tsx
+<LeaderLine
+  start={{ element: sourceRef }}
+  end={{ element: targetRef }}
+  startSocket="auto"  // 🎯 Automatically chooses optimal socket
+  endSocket="auto"    // 🎯 Smart connection points
+  color="#3498db"
+/>
+```
+
+**Perfect for:** Dynamic layouts, flow diagrams, org charts, mind maps, and any UI where elements move or resize.
+
+See the full changelog and interactive demo in the "Socket Positions Demo" screen!
+
+---
+
 ## 🤖 LLM-Optimized Library
 
 This library is specifically optimized for **Large Language Model (LLM) consumption** with:
@@ -35,10 +57,11 @@ This library is specifically optimized for **Large Language Model (LLM) consumpt
 ## ✨ Features
 
 - 🎯 **Multiple API Styles**: Functional components, Hook-based API, Imperative API (leader-line compatible)
+- 🧠 **Intelligent Auto Socket** (v1.4.2+): Automatically selects optimal connection points from 9 positions
 - 🔄 **Dynamic Updates**: Change line properties in real-time
 - 🎨 **Rich Styling**: Colors, gradients, outlines, shadows, dash patterns
 - 📐 **Path Types**: Straight lines, arcs, and custom curvature
-- 🔌 **Socket System**: Flexible connection points with gravity
+- 🔌 **Socket System**: Flexible connection points with gravity (9 positions: center, 4 sides, 4 corners)
 - 🏷️ **Multiple Labels**: Start, middle, end, caption, and path labels
 - ⚡ **Animations**: Show/hide effects with smooth transitions
 - 🎪 **Plug Types**: Arrows, discs, squares, and custom markers
@@ -261,9 +284,11 @@ const props: LeaderLineProps = {
 
 ### Socket Positions
 
+Socket positions determine where lines connect to elements. You can specify different sockets for start and end points.
+
 ```tsx
 type SocketPosition =
-  | "auto" // Auto-detect best connection point
+  | "auto" // 🎯 Intelligently selects closest socket (NEW in v1.4.2)
   | "center" // Center of element
   | "top" // Top center
   | "right" // Right center
@@ -274,6 +299,46 @@ type SocketPosition =
   | "bottom_left" // Bottom-left corner
   | "bottom_right"; // Bottom-right corner
 ```
+
+#### 🎯 Intelligent Auto Socket (v1.4.2+)
+
+The `"auto"` socket now intelligently selects the **closest connection point** from all 9 available positions based on the target element's location. This creates the most natural-looking connections automatically.
+
+**How it works:**
+1. Calculates the center position of the target element
+2. Measures distance from each of the 9 socket positions to the target center
+3. Selects the socket with the shortest distance
+4. Creates optimal connection paths automatically
+
+**Example:**
+```tsx
+// Auto socket intelligently chooses the best connection points
+<LeaderLine
+  start={{ element: sourceRef }}
+  end={{ element: targetRef }}
+  startSocket="auto"  // Will use closest socket on source (e.g., "right" if target is to the right)
+  endSocket="auto"    // Will use closest socket on target (e.g., "left" if source is to the left)
+  color="#3498db"
+  strokeWidth={2}
+/>
+
+// Mix auto with fixed sockets
+<LeaderLine
+  start={{ element: sourceRef }}
+  end={{ element: targetRef }}
+  startSocket="auto"     // Automatically choose best socket on source
+  endSocket="top"        // Always connect to top of target
+  color="#e74c3c"
+/>
+```
+
+**Use cases:**
+- **Dynamic layouts**: Elements that move or resize
+- **Flow diagrams**: Automatically optimal connections
+- **Org charts**: Natural hierarchical connections
+- **Mind maps**: Adaptive branch connections
+
+**Visual demo:** Check the "Socket Positions Demo" in the expo-example app to see auto socket selection in action with 8 live examples!
 
 ### Plug Types
 

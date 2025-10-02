@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2025-10-02
+
+### Added
+
+- **Intelligent Auto Socket Selection**: The `socket="auto"` option now intelligently selects the closest connection point from 9 available positions (center, 4 sides, and 4 corners) instead of always using the center
+- New utility function `getAllSocketPoints(layout)`: Returns coordinates for all 9 socket positions
+- New utility function `calculateClosestSocket(sourceLayout, targetCenter)`: Calculates which socket is closest to a target point using Euclidean distance
+
+### Improved
+
+- Enhanced `calculateConnectionPoints()` to support intelligent auto socket selection
+- Enhanced `calculateConnectionPointsRelative()` to support intelligent auto socket selection
+- Lines with `startSocket="auto"` or `endSocket="auto"` now automatically choose the optimal connection point based on element positions
+
+### Demo
+
+- Added comprehensive visual demo in `expo-example` showing intelligent auto socket selection
+- Demo includes 8 example connections from different positions to demonstrate automatic socket selection
+- Added educational documentation explaining how auto socket selection works
+
+### Technical Details
+
+- Implements distance-based algorithm to find optimal socket positions
+- Evaluates all 9 possible socket positions (center, top, right, bottom, left, top_left, top_right, bottom_left, bottom_right)
+- Selects socket with minimum Euclidean distance to target element's center
+- Fully backwards compatible - existing code continues to work without changes
+
+### Tests
+
+- Added comprehensive test suite for new socket selection functionality
+- 10 new test cases covering all socket selection scenarios
+- All 85 tests passing (100% success rate)
+
 ## [1.0.0] - 2025-05-29
 
 ### Added

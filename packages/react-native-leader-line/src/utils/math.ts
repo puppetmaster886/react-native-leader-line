@@ -71,6 +71,68 @@ export const calculatePlugTransform = (
 };
 
 /**
+ * Get all socket points for an element
+ * Returns coordinates for all 9 socket positions
+ */
+export const getAllSocketPoints = (
+  layout: ElementLayout
+): Record<SocketPosition, Point> => {
+  const { pageX, pageY, width, height } = layout;
+
+  return {
+    center: { x: pageX + width / 2, y: pageY + height / 2 },
+    top: { x: pageX + width / 2, y: pageY },
+    right: { x: pageX + width, y: pageY + height / 2 },
+    bottom: { x: pageX + width / 2, y: pageY + height },
+    left: { x: pageX, y: pageY + height / 2 },
+    top_left: { x: pageX, y: pageY },
+    top_right: { x: pageX + width, y: pageY },
+    bottom_left: { x: pageX, y: pageY + height },
+    bottom_right: { x: pageX + width, y: pageY + height },
+    auto: { x: pageX + width / 2, y: pageY + height / 2 }, // fallback to center
+  };
+};
+
+/**
+ * Calculate which socket is closest to a target point
+ * Used for intelligent "auto" socket selection
+ */
+export const calculateClosestSocket = (
+  sourceLayout: ElementLayout,
+  targetCenter: Point
+): SocketPosition => {
+  const allSockets = getAllSocketPoints(sourceLayout);
+
+  // Exclude 'auto' from consideration
+  const socketPositions: SocketPosition[] = [
+    "center",
+    "top",
+    "right",
+    "bottom",
+    "left",
+    "top_left",
+    "top_right",
+    "bottom_left",
+    "bottom_right",
+  ];
+
+  let closestSocket: SocketPosition = "center";
+  let minDistance = Infinity;
+
+  for (const socket of socketPositions) {
+    const socketPoint = allSockets[socket];
+    const distance = getDistance(socketPoint, targetCenter);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestSocket = socket;
+    }
+  }
+
+  return closestSocket;
+};
+
+/**
  * Get the socket point for an element based on socket position
  */
 export const getSocketPoint = (
@@ -368,9 +430,34 @@ export const calculateConnectionPointsRelative = async (
           pageY: endLayout.pageY - offsetY,
         };
 
+        // Intelligent auto socket selection
+        let effectiveStartSocket = startSocket;
+        let effectiveEndSocket = endSocket;
+
+        if (startSocket === "auto") {
+          // Find the socket on start element closest to the center of end element
+          const endCenter = getSocketPoint(adjustedEndLayout, "center");
+          effectiveStartSocket = calculateClosestSocket(
+            adjustedStartLayout,
+            endCenter
+          );
+        }
+
+        if (endSocket === "auto") {
+          // Find the socket on end element closest to the center of start element
+          const startCenter = getSocketPoint(adjustedStartLayout, "center");
+          effectiveEndSocket = calculateClosestSocket(
+            adjustedEndLayout,
+            startCenter
+          );
+        }
+
         // All verbose logging removed for performance
-        const startPoint = getSocketPoint(adjustedStartLayout, startSocket);
-        const endPoint = getSocketPoint(adjustedEndLayout, endSocket);
+        const startPoint = getSocketPoint(
+          adjustedStartLayout,
+          effectiveStartSocket
+        );
+        const endPoint = getSocketPoint(adjustedEndLayout, effectiveEndSocket);
 
         // Verificación de coherencia (silent in production)
         const isCoherent =
@@ -505,8 +592,24 @@ export const calculateConnectionPoints = async (
     }
   }
 
-  const rawStartPoint = getSocketPoint(startLayout, startSocket);
-  const rawEndPoint = getSocketPoint(endLayout, endSocket);
+  // Intelligent auto socket selection
+  let effectiveStartSocket = startSocket;
+  let effectiveEndSocket = endSocket;
+
+  if (startSocket === "auto") {
+    // Find the socket on start element closest to the center of end element
+    const endCenter = getSocketPoint(endLayout, "center");
+    effectiveStartSocket = calculateClosestSocket(startLayout, endCenter);
+  }
+
+  if (endSocket === "auto") {
+    // Find the socket on end element closest to the center of start element
+    const startCenter = getSocketPoint(startLayout, "center");
+    effectiveEndSocket = calculateClosestSocket(endLayout, startCenter);
+  }
+
+  const rawStartPoint = getSocketPoint(startLayout, effectiveStartSocket);
+  const rawEndPoint = getSocketPoint(endLayout, effectiveEndSocket);
 
   // Adjust coordinates relative to container to account for nav bars and other elements
   const startPoint = {

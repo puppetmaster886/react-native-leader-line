@@ -9,20 +9,7 @@ import { Text, View } from "react-native";
 import { useAttachment } from "../hooks/useAttachment";
 import { useLeaderLine } from "../hooks/useLeaderLine";
 import { useLeaderLineManager } from "../hooks/useLeaderLineManager";
-
-// Mock the LeaderLine component to avoid SVG import issues in tests
-const LeaderLine = React.forwardRef<View, any>((props, ref) => {
-  return (
-    <View
-      ref={ref}
-      testID={props.testID || "leader-line"}
-      style={{ opacity: 0.8 }}
-    >
-      <Text>LeaderLine Mock</Text>
-    </View>
-  );
-});
-LeaderLine.displayName = "LeaderLine";
+import LeaderLine from "../components/LeaderLine";
 
 // Simple Button component to avoid TouchableOpacity issues
 const Button = React.forwardRef<View, any>(

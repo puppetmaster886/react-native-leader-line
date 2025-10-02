@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /**
  * @fileoverview Edge cases and integration tests for React Native Leader Line
  * @description Tests for edge cases, browser compatibility, and integration scenarios similar to the original leader-line library

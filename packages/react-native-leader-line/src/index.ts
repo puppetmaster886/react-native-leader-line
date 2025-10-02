@@ -28,6 +28,7 @@ export {
 export {
   areaAnchor,
   // Math utilities
+  calculateClosestSocket,
   calculateConnectionPoints,
   calculatePathBoundingBox,
   calculatePathBoundingBoxWithOutline,
@@ -36,6 +37,7 @@ export {
   generateDashArray,
   generateEnhancedPathData,
   generatePathData,
+  getAllSocketPoints,
   getAngle,
   getDistance,
   getSocketPoint,

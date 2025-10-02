@@ -38,34 +38,3 @@ global.createMockRef = (measurements = {}) => ({
     }),
   },
 });
-
-// Silence specific warnings in tests
-const originalError = console.error;
-const originalWarn = console.warn;
-
-beforeAll(() => {
-  console.error = jest.fn((...args) => {
-    const message = String(args[0]);
-    if (
-      message.includes('Warning:') ||
-      message.includes('Invalid') ||
-      message.includes('Failed prop type')
-    ) {
-      return;
-    }
-    originalError(...args);
-  });
-
-  console.warn = jest.fn((...args) => {
-    const message = String(args[0]);
-    if (message.includes('Warning:')) {
-      return;
-    }
-    originalWarn(...args);
-  });
-});
-
-afterAll(() => {
-  console.error = originalError;
-  console.warn = originalWarn;
-});

@@ -6,6 +6,7 @@
 import { ElementLayout, PathType, Point, SocketPosition } from "../../types";
 import {
   areaAnchor,
+  calculateClosestSocket,
   calculateConnectionPoints,
   calculatePathBoundingBox,
   calculatePathBoundingBoxWithOutline,
@@ -15,6 +16,7 @@ import {
   generateDashArray,
   generateEnhancedPathData,
   generatePathData,
+  getAllSocketPoints,
   getAngle,
   getDistance,
   getSocketPoint,
@@ -122,9 +124,94 @@ describe("Math Utilities", () => {
       });
     });
 
-    it("should default to center for auto socket", () => {
+    it("should default to center for auto socket when used directly", () => {
       const point = getSocketPoint(layout, "auto");
       expect(point).toEqual({ x: 160, y: 145 });
+    });
+  });
+
+  describe("getAllSocketPoints", () => {
+    const layout: ElementLayout = {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      pageX: 100,
+      pageY: 100,
+      timestamp: Date.now(),
+    };
+
+    it("should return all 9 socket positions", () => {
+      const sockets = getAllSocketPoints(layout);
+
+      expect(sockets.center).toEqual({ x: 150, y: 125 });
+      expect(sockets.top).toEqual({ x: 150, y: 100 });
+      expect(sockets.right).toEqual({ x: 200, y: 125 });
+      expect(sockets.bottom).toEqual({ x: 150, y: 150 });
+      expect(sockets.left).toEqual({ x: 100, y: 125 });
+      expect(sockets.top_left).toEqual({ x: 100, y: 100 });
+      expect(sockets.top_right).toEqual({ x: 200, y: 100 });
+      expect(sockets.bottom_left).toEqual({ x: 100, y: 150 });
+      expect(sockets.bottom_right).toEqual({ x: 200, y: 150 });
+    });
+
+    it("should include auto socket as center fallback", () => {
+      const sockets = getAllSocketPoints(layout);
+      expect(sockets.auto).toEqual(sockets.center);
+    });
+  });
+
+  describe("calculateClosestSocket", () => {
+    const layout: ElementLayout = {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      pageX: 100,
+      pageY: 100,
+      timestamp: Date.now(),
+    };
+
+    it("should return right socket when target is to the right", () => {
+      const targetCenter: Point = { x: 300, y: 125 }; // Far to the right
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("right");
+    });
+
+    it("should return left socket when target is to the left", () => {
+      const targetCenter: Point = { x: 0, y: 125 }; // Far to the left
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("left");
+    });
+
+    it("should return top socket when target is above", () => {
+      const targetCenter: Point = { x: 150, y: 0 }; // Far above
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("top");
+    });
+
+    it("should return bottom socket when target is below", () => {
+      const targetCenter: Point = { x: 150, y: 250 }; // Far below
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("bottom");
+    });
+
+    it("should return top_right when target is in top-right direction", () => {
+      const targetCenter: Point = { x: 300, y: 0 }; // Top-right
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("top_right");
+    });
+
+    it("should return bottom_left when target is in bottom-left direction", () => {
+      const targetCenter: Point = { x: 0, y: 250 }; // Bottom-left
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("bottom_left");
+    });
+
+    it("should return center when target is at the center", () => {
+      const targetCenter: Point = { x: 150, y: 125 }; // Exactly at center
+      const closestSocket = calculateClosestSocket(layout, targetCenter);
+      expect(closestSocket).toBe("center");
     });
   });
 
@@ -283,35 +370,42 @@ describe("Math Utilities", () => {
   });
 
   describe("createPlugPath", () => {
-    it("should create arrow1 plug path", () => {
+    it("should create arrow1 plug path centered at origin", () => {
       const path = createPlugPath("arrow1", 16);
-      expect(path).toBe("M 0 0 L 16 8 L 0 16 z");
+      // size=16, halfSize=8 -> M -8 -8 L 8 0 L -8 8 z
+      expect(path).toBe("M -8 -8 L 8 0 L -8 8 z");
     });
 
-    it("should create arrow2 plug path", () => {
+    it("should create arrow2 plug path centered at origin", () => {
       const path = createPlugPath("arrow2", 20);
-      expect(path).toContain("M 0 10 L 20 0");
+      // size=20, halfSize=10 -> M -10 0 L 10 -10 L 8 0 L 10 10 z
+      expect(path).toBe("M -10 0 L 10 -10 L 8 0 L 10 10 z");
     });
 
-    it("should create disc plug path", () => {
+    it("should create disc plug path centered at origin", () => {
       const path = createPlugPath("disc", 12);
-      expect(path).toContain("m -6 0 a 6 6");
+      // size=12, halfSize=6 -> M 0 0 m -6 0 a 6 6 0 1 0 12 0 a 6 6 0 1 0 -12 0
+      expect(path).toBe("M 0 0 m -6 0 a 6 6 0 1 0 12 0 a 6 6 0 1 0 -12 0");
     });
 
-    it("should create square plug path", () => {
+    it("should create square plug path centered at origin", () => {
       const path = createPlugPath("square", 10);
-      expect(path).toBe("M 0 0 L 10 0 L 10 10 L 0 10 z");
+      // size=10, halfSize=5 -> M -5 -5 L 5 -5 L 5 5 L -5 5 z
+      expect(path).toBe("M -5 -5 L 5 -5 L 5 5 L -5 5 z");
     });
 
-    it("should create diamond plug path", () => {
+    it("should create diamond plug path centered at origin", () => {
       const path = createPlugPath("diamond", 16);
-      expect(path).toBe("M 8 0 L 16 8 L 8 16 L 0 8 z");
+      // size=16, halfSize=8 -> M 0 -8 L 8 0 L 0 8 L -8 0 z
+      expect(path).toBe("M 0 -8 L 8 0 L 0 8 L -8 0 z");
     });
 
     it("should return empty string for none plug", () => {
       const path = createPlugPath("none");
       expect(path).toBe("");
     });
+
+
 
     it("should return empty string for behind plug", () => {
       const path = createPlugPath("behind");
@@ -320,12 +414,13 @@ describe("Math Utilities", () => {
 
     it("should create hand plug path", () => {
       const path = createPlugPath("hand", 20);
-      expect(path).toContain("M 0 10 L");
+      expect(path).toBe("M -10 0 L 6 -10 L 10 -3 L 8 0 L 10 7 L 6 10 z");
     });
 
-    it("should create crosshair plug path", () => {
+    it("should create crosshair plug path centered at origin", () => {
       const path = createPlugPath("crosshair", 16);
-      expect(path).toBe("M 8 0 L 8 16 M 0 8 L 16 8");
+      // size=16, halfSize=8 -> M 0 -8 L 0 8 M -8 0 L 8 0
+      expect(path).toBe("M 0 -8 L 0 8 M -8 0 L 8 0");
     });
   });
 

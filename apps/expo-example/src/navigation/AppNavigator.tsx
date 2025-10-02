@@ -39,6 +39,7 @@ export default function AppNavigator() {
           headerTitleStyle: {
             fontWeight: "bold",
           },
+          headerBackVisible: true,
         }}
       >
         <Stack.Screen

@@ -5,11 +5,27 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.64+-blue.svg)](https://reactnative.dev/)
 [![LLM Optimized](https://img.shields.io/badge/LLM-Optimized-brightgreen.svg)](https://github.com/puppetmaster886/react-native-leader-line)
 [![Expo Snacks](https://img.shields.io/badge/Expo-Snacks%20Available-000020.svg)](https://snack.expo.dev)
-[![Live Demos](https://img.shields.io/badge/Live-Demos-ff69b4.svg)](https://snack.expo.dev)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-ff69b4.svg)](https://puppetmaster886.github.io/react-native-leader-line)
 [![Test Coverage](https://img.shields.io/badge/Coverage-80%25+-green.svg)](https://github.com/puppetmaster886/react-native-leader-line)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A React Native port of the popular [leader-line](https://github.com/anseki/leader-line) library for drawing arrow lines and connectors between UI components. This library brings the powerful line-drawing capabilities of leader-line to React Native applications, with additional fixes and enhancements from community forks.
+
+## 🎮 Live Demo
+
+**Try it live:** [https://puppetmaster886.github.io/react-native-leader-line](https://puppetmaster886.github.io/react-native-leader-line)
+
+Experience all features interactively:
+- ✅ **Intelligent Auto Socket Selection** (NEW in v1.4.2)
+- ✅ All socket positions (auto, center, top, right, bottom, left, corners)
+- ✅ Different path types (straight, arc, fluid, magnet, grid)
+- ✅ Various plug types (arrows, discs, squares, diamonds)
+- ✅ Labels, animations, and styling options
+- ✅ Performance optimization demos
+
+*Click and explore - no installation required!*
+
+---
 
 ## 🎉 What's New in v1.4.2
 

@@ -293,6 +293,7 @@ export class LeaderLineClass {
   }
 
   // Private animation method
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _animate(effectName: AnimationType, _animOptions?: AnimationOptions) {
     // In a real implementation, this would handle animations
     // For React Native, we might use Animated API or other animation libraries

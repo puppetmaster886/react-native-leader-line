@@ -207,6 +207,7 @@ export class LeaderLineImperative {
    */
   private createComponent(opts: ImperativeLeaderLineOptions): React.ReactElement {
     // Import dynamically to avoid circular dependencies
+    // eslint-disable-next-line no-undef
     const LeaderLine = require('./LeaderLine').LeaderLine;
     
     // Convert start/end to attachment format

@@ -205,6 +205,7 @@ export const calculatePlugTransform = (
   start: Point,
   end: Point,
   isEndPlug: boolean = true,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _plugSize: number = 8,
   offset: number = 0,
   tangentAngle?: number
@@ -461,6 +462,7 @@ export const measureRelativeToContainer = async (
     // This method measures the element relative to a specific ancestor
     element.current.measureLayout(
       containerRef.current,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (x: number, y: number, _width: number, _height: number) => {
         resolve({ x, y });
       },
@@ -620,6 +622,7 @@ export const calculateConnectionPointsRelative = async (
         const endPoint = getSocketPoint(adjustedEndLayout, effectiveEndSocket);
 
         // Verificación de coherencia (silent in production)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _isCoherent =
           Math.abs(
             startPoint.x - (startLayout.pageX + startLayout.width / 2 - offsetX)
@@ -1408,6 +1411,7 @@ const generateMagnetPath = (
   start: Point,
   end: Point,
   startSocket?: SocketPosition,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _endSocket?: SocketPosition
 ): string => {
   const dx = end.x - start.x;

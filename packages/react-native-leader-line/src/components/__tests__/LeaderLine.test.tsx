@@ -300,9 +300,6 @@ describe("LeaderLine Component (Simplified)", () => {
     });
 
     it("should handle auto socket selection", () => {
-      const _startElement = { x: 0, y: 0, width: 50, height: 50 };
-      const _endElement = { x: 100, y: 0, width: 50, height: 50 };
-
       // Calculate centers
       const startCenter = { x: 25, y: 25 };
       const endCenter = { x: 125, y: 25 };

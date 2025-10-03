@@ -2,7 +2,8 @@ const React = require('react');
 
 const createMockComponent = (name) => {
   const Component = React.forwardRef((props, ref) => {
-    return React.createElement('View', props); // Always return a View
+    const { children, ...rest } = props;
+    return React.createElement(name, { ...rest, ref }, children);
   });
   Component.displayName = name;
   return Component;

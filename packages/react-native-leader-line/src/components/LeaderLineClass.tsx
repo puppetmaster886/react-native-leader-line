@@ -293,13 +293,10 @@ export class LeaderLineClass {
   }
 
   // Private animation method
-  private _animate(effectName: AnimationType, animOptions?: AnimationOptions) {
+  private _animate(effectName: AnimationType, _animOptions?: AnimationOptions) {
     // In a real implementation, this would handle animations
     // For React Native, we might use Animated API or other animation libraries
-    const _options = {
-      duration: 300,
-      ...animOptions,
-    };
+    // Animation options parameter is currently unused but kept for API compatibility
 
     switch (effectName) {
       case "fade":

@@ -1,0 +1,28 @@
+body {
+  overflow-x: hidden !important;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden !important;
+}
+
+#root {
+  overflow-x: hidden !important;
+}
+
+/* Override React Native Web scroll styles */
+.r-overflowX-11yh6sk {
+  overflow-x: hidden !important;
+}
+
+/* Hide all horizontal scrollbars */
+* {
+  overflow-x: hidden !important;
+}
+
+/* Allow vertical scroll */
+.r-overflowY-1rnoaur {
+  overflow-y: auto !important;
+}

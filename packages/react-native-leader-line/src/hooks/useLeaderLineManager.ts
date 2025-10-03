@@ -185,6 +185,16 @@ export const useLeaderLineManager = (options: any = {}) => {
     clear();
   }, [clear]);
 
+  // Alias for clearAll
+  const removeAllLines = useCallback(() => {
+    clear();
+  }, [clear]);
+
+  // Get all line IDs
+  const getLineIds = useCallback(() => {
+    return Array.from(lines.keys());
+  }, [lines]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -198,6 +208,24 @@ export const useLeaderLineManager = (options: any = {}) => {
     setIsInitialized(true);
   }, []);
 
+  // Container component that renders all lines
+  const LeaderLineContainer = useCallback(({ containerRef }: { containerRef?: any }) => {
+    const React = require('react');
+    const { LeaderLine } = require('../components/LeaderLine');
+
+    return React.createElement(
+      React.Fragment,
+      null,
+      Array.from(lines.values()).map((line) =>
+        React.createElement(LeaderLine, {
+          key: line.id,
+          containerRef,
+          ...line.props,
+        })
+      )
+    );
+  }, [lines]);
+
   return {
     lines: Array.from(lines.values()),
     isInitialized,
@@ -206,6 +234,8 @@ export const useLeaderLineManager = (options: any = {}) => {
     updateLine,
     updateMultipleLines, // New bulk update method
     removeLine,
+    removeAllLines,
+    getLineIds,
     showLine,
     hideLine,
     refreshAll,
@@ -213,6 +243,7 @@ export const useLeaderLineManager = (options: any = {}) => {
     clearAll,
     getLine: (id: string) => lines.get(id),
     hasLine: (id: string) => lines.has(id),
+    LeaderLineContainer,
 
     // Performance utilities
     getPerformanceMetrics: () => ({

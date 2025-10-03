@@ -37,7 +37,7 @@ export default function BasicDemo() {
 
           <View
             ref={endRef1}
-            style={[styles.box, styles.redBox, { bottom: 50, right: 50 }]}
+            style={[styles.box, styles.redBox, { top: 50, right: 50 }]}
           >
             <Text style={styles.boxText}>End</Text>
           </View>
@@ -72,7 +72,7 @@ export default function BasicDemo() {
           </View>
           <View
             ref={endRef2}
-            style={[styles.box, styles.yellowBox, { bottom: 50, right: 50 }]}
+            style={[styles.box, styles.yellowBox, { top: 50, right: 50 }]}
           >
             <Text style={styles.boxText}>To</Text>
           </View>

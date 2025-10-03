@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "../screens/HomeScreen";
 import BasicDemo from "../screens/BasicDemo";
 import PathTypesDemo from "../screens/PathTypesDemo";
+import InteractivePlugDemo from "../screens/InteractivePlugDemo";
 import AnimationsDemo from "../screens/AnimationsDemo";
 import SocketPositionsDemo from "../screens/SocketPositionsDemo";
 import LabelsDemo from "../screens/LabelsDemo";
@@ -17,6 +18,7 @@ export type RootStackParamList = {
   Home: undefined;
   BasicDemo: undefined;
   PathTypesDemo: undefined;
+  InteractivePlugDemo: undefined;
   AnimationsDemo: undefined;
   SocketPositionsDemo: undefined;
   LabelsDemo: undefined;
@@ -40,6 +42,14 @@ export default function AppNavigator() {
             fontWeight: "bold",
           },
           headerBackVisible: true,
+          headerBackTitleVisible: false,
+          headerBackTitle: "Back",
+          contentStyle: {
+            maxWidth: 800,
+            width: "100%",
+            alignSelf: "center",
+            backgroundColor: "#f5f5f5",
+          },
         }}
       >
         <Stack.Screen
@@ -59,6 +69,13 @@ export default function AppNavigator() {
           component={PathTypesDemo}
           options={{
             title: "Path Types",
+          }}
+        />
+        <Stack.Screen
+          name="InteractivePlugDemo"
+          component={InteractivePlugDemo}
+          options={{
+            title: "Interactive Plugs",
           }}
         />
         <Stack.Screen

@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   Animated,
+  Platform,
 } from "react-native";
 import { LeaderLine } from "react-native-leader-line";
 
@@ -49,6 +50,16 @@ export default function AnimationsDemo() {
           Optimized for performance with configurable update rates.
         </Text>
       </View>
+
+      {Platform.OS === 'web' && (
+        <View style={styles.webWarning}>
+          <Text style={styles.webWarningIcon}>⚠️</Text>
+          <Text style={styles.webWarningText}>
+            Animated line updates are a work in progress on web. For the best
+            experience, try this demo on iOS or Android.
+          </Text>
+        </View>
+      )}
 
       {/* Example 1: Toggle Visibility */}
       <View style={styles.demoSection}>
@@ -99,7 +110,7 @@ export default function AnimationsDemo() {
           </Animated.View>
           <View
             ref={endRef}
-            style={[styles.box, styles.purpleBox, { bottom: 40, left: 150 }]}
+            style={[styles.box, styles.purpleBox, { top: 40, left: 150 }]}
           >
             <Text style={styles.boxText}>Fixed</Text>
           </View>
@@ -154,6 +165,27 @@ const styles = StyleSheet.create({
     color: "#555",
     lineHeight: 22,
   },
+  webWarning: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff3cd",
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ffc107",
+  },
+  webWarningIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  webWarningText: {
+    flex: 1,
+    fontSize: 14,
+    color: "#856404",
+    lineHeight: 20,
+  },
   demoSection: {
     marginBottom: 16,
   },
@@ -192,7 +224,7 @@ const styles = StyleSheet.create({
   },
   redBox: {
     backgroundColor: "#e74c3c",
-    bottom: 40,
+    top: 40,
     right: 40,
   },
   greenBox: {

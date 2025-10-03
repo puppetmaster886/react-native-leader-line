@@ -33,7 +33,7 @@ export default function LabelsDemo() {
           </View>
           <View
             ref={ref1End}
-            style={[styles.box, styles.redBox, { bottom: 30, right: 30 }]}
+            style={[styles.box, styles.redBox, { top: 30, right: 30 }]}
           >
             <Text style={styles.boxText}>B</Text>
           </View>
@@ -69,19 +69,18 @@ export default function LabelsDemo() {
           <LeaderLine
             start={{ element: ref2Start }}
             end={{ element: ref2End }}
-            middleLabel="Data Flow"
-            path="arc"
-            color="#2ecc71"
-            strokeWidth={3}
-            containerRef={demoRef2}
-            labelStyle={{
+            middleLabel={{
+              text: "Data Flow",
               backgroundColor: "#2ecc71",
               color: "white",
               padding: 8,
               borderRadius: 4,
               fontSize: 14,
-              fontWeight: "bold",
             }}
+            path="arc"
+            color="#2ecc71"
+            strokeWidth={3}
+            containerRef={demoRef2}
           />
         </View>
       </View>
@@ -98,7 +97,7 @@ export default function LabelsDemo() {
           </View>
           <View
             ref={ref3End}
-            style={[styles.box, styles.tealBox, { bottom: 20, right: 50 }]}
+            style={[styles.box, styles.tealBox, { top: 20, right: 50 }]}
           >
             <Text style={styles.boxText}>DB</Text>
           </View>

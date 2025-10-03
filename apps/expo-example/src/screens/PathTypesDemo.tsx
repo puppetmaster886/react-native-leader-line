@@ -38,7 +38,7 @@ const pathTypes = [
 
 export default function PathTypesDemo() {
   const [selectedPath, setSelectedPath] = useState<string>("straight");
-  const [curvature, setCurvature] = useState(0.02);
+  const [curvature, setCurvature] = useState(0.2);
 
   const containerRef = useRef<ScrollView>(null);
   const demoContainerRef = useRef<View>(null);
@@ -76,6 +76,8 @@ export default function PathTypesDemo() {
             start={{ element: demoStartRef }}
             end={{ element: demoEndRef }}
             path={selectedPath as any}
+            startSocket="right"
+            endSocket="left"
             color={
               pathTypes.find((p) => p.type === selectedPath)?.color || "#3498db"
             }
@@ -122,13 +124,13 @@ export default function PathTypesDemo() {
             <View style={styles.curvatureButtons}>
               <TouchableOpacity
                 style={styles.curvatureButton}
-                onPress={() => setCurvature(Math.max(0, curvature - 0.01))}
+                onPress={() => setCurvature(Math.max(-1.5, curvature - 0.1))}
               >
                 <Text style={styles.buttonText}>-</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.curvatureButton}
-                onPress={() => setCurvature(Math.min(1, curvature + 0.01))}
+                onPress={() => setCurvature(Math.min(10, curvature + 0.1))}
               >
                 <Text style={styles.buttonText}>+</Text>
               </TouchableOpacity>
@@ -140,6 +142,8 @@ export default function PathTypesDemo() {
           <Text style={styles.code}>{`<LeaderLine
   start={{ element: startRef }}
   end={{ element: endRef }}
+  startSocket="right"
+  endSocket="left"
   path="${selectedPath}"${
             selectedPath === "arc" || selectedPath === "fluid"
               ? `
@@ -168,19 +172,21 @@ export default function PathTypesDemo() {
                 ref={gridRefs[`${type}Start`]}
                 style={[
                   styles.miniBox,
-                  { backgroundColor: color, top: 20, left: 20 },
+                  { top: 20, left: 20 },
                 ]}
               />
               <View
                 ref={gridRefs[`${type}End`]}
                 style={[
                   styles.miniBox,
-                  { backgroundColor: color, bottom: 20, right: 20 },
+                  {  bottom: 20, right: 20 },
                 ]}
               />
               <LeaderLine
                 start={{ element: gridRefs[`${type}Start`] }}
                 end={{ element: gridRefs[`${type}End`] }}
+                startSocket="right"
+                endSocket="left"
                 path={type}
                 color={color}
                 strokeWidth={2}
@@ -376,6 +382,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 6,
+    backgroundColor: "#34495e",
   },
   tips: {
     margin: 16,

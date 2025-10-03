@@ -126,9 +126,20 @@ export type PlugType =
   | "arrow1" // Standard arrow (recommended)
   | "arrow2" // Wider arrow
   | "arrow3" // Narrow arrow
-  | "hand" // Hand pointer
-  | "crosshair" // Crosshair marker
-  | "diamond"; // Diamond shape
+  | "crosshair" // Cross/plus marker
+  | "diamond" // Diamond shape
+  | "star" // Five-pointed star
+  | "heart" // Heart shape
+  | "chevron" // Chevron arrow
+  | "hollowArrow" // Hollow arrow outline
+  | "pentagon" // Pentagon shape
+  | "hexagon" // Hexagon shape
+  | "bar" // Perpendicular line
+  | "lineArrow" // Simple line arrow (45 degrees)
+  | "lineArrowWide" // Wide line arrow (60 degrees)
+  | "lineArrowNarrow" // Narrow line arrow (30 degrees)
+  | "lineArrowVeryWide" // Very wide line arrow (75 degrees)
+  | "lineArrowVeryNarrow"; // Very narrow line arrow (15 degrees)
 
 /**
  * @type AnimationType
@@ -553,6 +564,10 @@ export interface LeaderLineOptions {
   startPlugSize?: number;
   /** End marker size */
   endPlugSize?: number;
+  /** Distance offset from start point where plug begins (in pixels) */
+  startPlugOffset?: number;
+  /** Distance offset from end point where plug begins (in pixels) */
+  endPlugOffset?: number;
   /** Path type or configuration */
   path?: PathType | PathConfiguration;
   /** Start connection point */
@@ -839,10 +854,29 @@ export const LeaderLinePropsSchema = {
         "arrow1",
         "arrow2",
         "arrow3",
-        "hand",
         "crosshair",
         "diamond",
+        "star",
+        "heart",
+        "chevron",
+        "hollowArrow",
+        "pentagon",
+        "hexagon",
+        "bar",
+        "lineArrow",
+        "lineArrowWide",
+        "lineArrowNarrow",
+        "lineArrowVeryWide",
+        "lineArrowVeryNarrow",
       ],
+    },
+    startPlugOffset: {
+      type: "number",
+      minimum: 0,
+    },
+    endPlugOffset: {
+      type: "number",
+      minimum: 0,
     },
   },
 } as const;

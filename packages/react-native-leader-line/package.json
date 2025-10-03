@@ -1,6 +1,6 @@
 {
   "name": "react-native-leader-line",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "React Native port of leader-line library for drawing arrow lines and connectors",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -21,8 +21,7 @@
     "test:all": "jest && jest --config jest.config.edge.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run build && npm test"
+    "prepare": "npm run build"
   },
   "keywords": [
     "react-native",

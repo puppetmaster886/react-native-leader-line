@@ -61,7 +61,7 @@ export default function ImperativeApiDemo() {
 
   const handleUpdateLines = () => {
     const lineIds = getLineIds();
-    lineIds.forEach((id, index) => {
+    lineIds.forEach((id: string, index: number) => {
       updateLine(id, {
         color: ["#9b59b6", "#1abc9c", "#34495e", "#e67e22"][index % 4],
         strokeWidth: 4,
@@ -108,7 +108,7 @@ export default function ImperativeApiDemo() {
           ref={box3Ref}
           style={[
             styles.box,
-            { backgroundColor: "#2ecc71", bottom: 30, left: 30 },
+            { backgroundColor: "#2ecc71", top: 30, left: 30 },
           ]}
         >
           <Text style={styles.boxText}>3</Text>
@@ -117,7 +117,7 @@ export default function ImperativeApiDemo() {
           ref={box4Ref}
           style={[
             styles.box,
-            { backgroundColor: "#f39c12", bottom: 30, right: 30 },
+            { backgroundColor: "#f39c12", top: 30, right: 30 },
           ]}
         >
           <Text style={styles.boxText}>4</Text>

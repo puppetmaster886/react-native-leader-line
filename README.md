@@ -8,6 +8,14 @@
 
 A React Native port of the popular [leader-line](https://github.com/anseki/leader-line) library for drawing arrow lines and connectors between UI components.
 
+## 🎯 Live Demo
+
+**[Try the interactive demo →](https://puppetmaster886.github.io/react-native-leader-line/)**
+
+Explore all features including animations, different line types, socket positions, and more!
+
+> **⚠️ Note on Web Support:** While this library works on React Native Web, animated line updates are currently a work in progress on web platforms. Animations work perfectly on iOS and Android devices. For the best experience with animations, please test on a mobile device.
+
 ## 📁 Monorepo Structure
 
 This project uses Yarn workspaces to manage multiple packages:

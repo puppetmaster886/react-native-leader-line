@@ -38,7 +38,7 @@ function AutoSocketDemo({ containerRef }: { containerRef: React.RefObject<Scroll
 
       <View style={[styles.demo, styles.autoDemo]} ref={autoDemoContainerRef}>
         {/* Center target box */}
-        <View ref={centerRef} style={styles.autoCenterBox}>
+        <View ref={centerRef} style={styles.centerBox}>
           <Text style={styles.centerText}>Center</Text>
           <Text style={styles.centerSubtext}>Target</Text>
         </View>

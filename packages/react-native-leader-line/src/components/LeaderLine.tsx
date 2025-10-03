@@ -46,6 +46,7 @@ import {
   areaAnchor,
   calculateConnectionPointsRelative,
   calculatePathBoundingBoxWithOutline,
+  calculatePathTangentAngle,
   calculatePlugTransform,
   createEnhancedPlugPath,
   generateDashArray,
@@ -94,6 +95,8 @@ const useLayoutRecalculation = (
   endSocket: SocketPosition,
   setStartPoint: (point: Point | null) => void,
   setEndPoint: (point: Point | null) => void,
+  setEffectiveStartSocket: (socket: SocketPosition) => void,
+  setEffectiveEndSocket: (socket: SocketPosition) => void,
   setElementsReady: (ready: boolean) => void,
   containerRef: React.RefObject<View>
 ) => {
@@ -110,6 +113,8 @@ const useLayoutRecalculation = (
         if (points) {
           setStartPoint(points.start);
           setEndPoint(points.end);
+          if (points.startSocket) setEffectiveStartSocket(points.startSocket);
+          if (points.endSocket) setEffectiveEndSocket(points.endSocket);
           setElementsReady(true);
         }
       } catch (error) {
@@ -123,6 +128,8 @@ const useLayoutRecalculation = (
     endSocket,
     setStartPoint,
     setEndPoint,
+    setEffectiveStartSocket,
+    setEffectiveEndSocket,
     setElementsReady,
     containerRef,
   ]);
@@ -144,8 +151,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   containerRef,
 
   // Socket configuration
-  startSocket = "center",
-  endSocket = "center",
+  startSocket = "auto",
+  endSocket = "auto",
 
   // Basic styling
   color = "#ff6b6b",
@@ -163,12 +170,14 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   endPlugColor,
   startPlugSize = 10,
   endPlugSize = 10,
+  startPlugOffset = 0,
+  endPlugOffset = 0,
 
   // Advanced styling
   dash,
   outline,
-  startPlugOutline,
-  endPlugOutline,
+  // startPlugOutline,
+  // endPlugOutline,
   dropShadow = false,
 
   // Labels
@@ -210,6 +219,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
   // Internal state for connection points and SVG bounds
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [endPoint, setEndPoint] = useState<Point | null>(null);
+  const [effectiveStartSocket, setEffectiveStartSocket] = useState<SocketPosition>(startSocket);
+  const [effectiveEndSocket, setEffectiveEndSocket] = useState<SocketPosition>(endSocket);
   const [svgBounds, setSvgBounds] = useState<BoundingBox>({
     x: 0,
     y: 0,
@@ -234,6 +245,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     endSocket,
     setStartPoint,
     setEndPoint,
+    setEffectiveStartSocket,
+    setEffectiveEndSocket,
     setElementsReady,
     leaderLineContainerRef
   );
@@ -360,6 +373,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           if (points) {
             newStartPoint = points.start;
             newEndPoint = points.end;
+            if (points.startSocket) setEffectiveStartSocket(points.startSocket);
+            if (points.endSocket) setEffectiveEndSocket(points.endSocket);
           }
         } else if (start.element?.current && end.point) {
           if (containerRef?.current) {
@@ -506,6 +521,8 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
           if (points) {
             setStartPoint(points.start);
             setEndPoint(points.end);
+            if (points.startSocket) setEffectiveStartSocket(points.startSocket);
+            if (points.endSocket) setEffectiveEndSocket(points.endSocket);
             setElementsReady(true);
 
             // Store initial points
@@ -742,21 +759,34 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
     if (!startPoint || !endPoint) return "";
 
     try {
+      // Calculate angle for offset adjustment
+      const dx = endPoint.x - startPoint.x;
+      const dy = endPoint.y - startPoint.y;
+      const angle = Math.atan2(dy, dx);
+
+      // Apply offsets along the line direction
+      const offsetStartX = startPoint.x + startPlugOffset * Math.cos(angle);
+      const offsetStartY = startPoint.y + startPlugOffset * Math.sin(angle);
+      const offsetEndX = endPoint.x - endPlugOffset * Math.cos(angle);
+      const offsetEndY = endPoint.y - endPlugOffset * Math.sin(angle);
+
       // Ajustar coordenadas relativas a la nueva posición del SVG
       const adjustedStart = {
-        x: startPoint.x - coordinateOffset.x,
-        y: startPoint.y - coordinateOffset.y,
+        x: offsetStartX - coordinateOffset.x,
+        y: offsetStartY - coordinateOffset.y,
       };
       const adjustedEnd = {
-        x: endPoint.x - coordinateOffset.x,
-        y: endPoint.y - coordinateOffset.y,
+        x: offsetEndX - coordinateOffset.x,
+        y: offsetEndY - coordinateOffset.y,
       };
 
       const pathDataResult = generateEnhancedPathData(
         adjustedStart,
         adjustedEnd,
         path,
-        curvature
+        curvature,
+        effectiveStartSocket,
+        effectiveEndSocket
       );
 
       // Validate path data
@@ -778,7 +808,7 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
       };
       return `M ${adjustedStart.x} ${adjustedStart.y} L ${adjustedEnd.x} ${adjustedEnd.y}`;
     }
-  }, [startPoint, endPoint, path, curvature, coordinateOffset]);
+  }, [startPoint, endPoint, path, curvature, coordinateOffset, effectiveStartSocket, effectiveEndSocket, startPlugOffset, endPlugOffset]);
 
   /**
    * Normalize outline options with default values
@@ -824,21 +854,46 @@ export const LeaderLine: React.FC<LeaderLineProps> = ({
       y: endPoint.y - coordinateOffset.y,
     };
 
+    // Calculate tangent angles based on path type
+    const startTangentAngle = calculatePathTangentAngle(
+      adjustedStart,
+      adjustedEnd,
+      path,
+      curvature,
+      effectiveStartSocket,
+      effectiveEndSocket,
+      false // start point
+    );
+
+    const endTangentAngle = calculatePathTangentAngle(
+      adjustedStart,
+      adjustedEnd,
+      path,
+      curvature,
+      effectiveStartSocket,
+      effectiveEndSocket,
+      true // end point
+    );
+
     return {
       start: calculatePlugTransform(
         adjustedStart,
         adjustedEnd,
         false,
-        startPlugSize
+        startPlugSize,
+        startPlugOffset,
+        startTangentAngle
       ),
       end: calculatePlugTransform(
         adjustedStart,
         adjustedEnd,
         true,
-        endPlugSize
+        endPlugSize,
+        endPlugOffset,
+        endTangentAngle
       ),
     };
-  }, [startPoint, endPoint, coordinateOffset, path, curvature]);
+  }, [startPoint, endPoint, coordinateOffset, path, curvature, startPlugOffset, endPlugOffset, effectiveStartSocket, effectiveEndSocket]);
   /**
    * Render drop shadow effect if enabled
    */

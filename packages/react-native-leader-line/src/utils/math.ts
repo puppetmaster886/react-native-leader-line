@@ -39,31 +39,194 @@ export const getAngleDegrees = (p1: Point, p2: Point): number => {
 };
 
 /**
+ * Calculate the tangent angle at the start or end of a path
+ */
+export const calculatePathTangentAngle = (
+  start: Point,
+  end: Point,
+  pathType: PathType | PathConfiguration,
+  curvature: number = 0.2,
+  startSocket?: SocketPosition,
+  endSocket?: SocketPosition,
+  isEndPoint: boolean = true
+): number => {
+  const type = typeof pathType === "string" ? pathType : pathType.type;
+
+  switch (type) {
+    case "straight":
+      // For straight lines, use the direct angle
+      return getAngleDegrees(start, end);
+
+    case "arc": {
+      // For arc, calculate tangent based on control points
+      const downward = end.y > start.y;
+      const circle8rad = (Math.PI / 8) * (downward ? -1 : 1);
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+
+      if (isEndPoint) {
+        // Tangent at end point
+        const cp2Angle = Math.PI - angle - circle8rad;
+        const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+        const CIRCLE_CP = 0.5522847498;
+        const crLen = (distance / Math.sqrt(2)) * CIRCLE_CP * (1 + curvature);
+        const cp2x = end.x + Math.cos(cp2Angle) * crLen;
+        const cp2y = end.y + Math.sin(cp2Angle) * crLen * -1;
+        return (Math.atan2(end.y - cp2y, end.x - cp2x) * 180) / Math.PI;
+      } else {
+        // Tangent at start point
+        const cp1Angle = -angle + circle8rad;
+        const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+        const CIRCLE_CP = 0.5522847498;
+        const crLen = (distance / Math.sqrt(2)) * CIRCLE_CP * (1 + curvature);
+        const cp1x = start.x + Math.cos(cp1Angle) * crLen;
+        const cp1y = start.y + Math.sin(cp1Angle) * crLen * -1;
+        return (Math.atan2(cp1y - start.y, cp1x - start.x) * 180) / Math.PI;
+      }
+    }
+
+    case "fluid": {
+      // For fluid paths, calculate tangent from control points
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const MIN_GRAVITY = 30;
+      let len = distance / 2;
+      if (len < MIN_GRAVITY) len = MIN_GRAVITY;
+      len = len * (0.5 + curvature);
+
+      const getSocketOffset = (socket: SocketPosition | undefined, isStart: boolean): { x: number, y: number } => {
+        if (!socket || socket === 'auto' || socket === 'center') {
+          // Auto-detect based on dominant direction
+          if (Math.abs(dx) > Math.abs(dy)) {
+            if (isStart) {
+              return dx > 0 ? { x: len, y: 0 } : { x: -len, y: 0 };
+            } else {
+              return dx > 0 ? { x: -len, y: 0 } : { x: len, y: 0 };
+            }
+          } else {
+            if (isStart) {
+              return dy > 0 ? { x: 0, y: len } : { x: 0, y: -len };
+            } else {
+              return dy > 0 ? { x: 0, y: -len } : { x: 0, y: len };
+            }
+          }
+        }
+
+        switch (socket) {
+          case 'top': return { x: 0, y: -len };
+          case 'right': return { x: len, y: 0 };
+          case 'bottom': return { x: 0, y: len };
+          case 'left': return { x: -len, y: 0 };
+          case 'top_left': return { x: -len * 0.7, y: -len * 0.7 };
+          case 'top_right': return { x: len * 0.7, y: -len * 0.7 };
+          case 'bottom_left': return { x: -len * 0.7, y: len * 0.7 };
+          case 'bottom_right': return { x: len * 0.7, y: len * 0.7 };
+          default: return { x: 0, y: 0 };
+        }
+      };
+
+      if (isEndPoint) {
+        // Calculate tangent at end: direction from second control point to end
+        const endOffset = getSocketOffset(endSocket, false);
+        const cp2x = end.x + endOffset.x;
+        const cp2y = end.y + endOffset.y;
+        return (Math.atan2(end.y - cp2y, end.x - cp2x) * 180) / Math.PI;
+      } else {
+        // Calculate tangent at start: direction from start to first control point
+        const startOffset = getSocketOffset(startSocket, true);
+        const cp1x = start.x + startOffset.x;
+        const cp1y = start.y + startOffset.y;
+        return (Math.atan2(cp1y - start.y, cp1x - start.x) * 180) / Math.PI;
+      }
+    }
+
+    case "magnet": {
+      // For magnet orthogonal paths, determine the angle of the first/last segment
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+
+      // Determine path direction based on socket or distance
+      let preferHorizontal = Math.abs(dx) > Math.abs(dy);
+
+      if (startSocket && startSocket !== 'auto' && startSocket !== 'center') {
+        const horizontalSockets: SocketPosition[] = ['left', 'right'];
+        const verticalSockets: SocketPosition[] = ['top', 'bottom'];
+
+        if (horizontalSockets.includes(startSocket)) {
+          preferHorizontal = true;
+        } else if (verticalSockets.includes(startSocket)) {
+          preferHorizontal = false;
+        }
+      }
+
+      if (isEndPoint) {
+        // Last segment direction
+        if (preferHorizontal) {
+          // Path goes horizontal first, so last segment is vertical
+          return dy > 0 ? 90 : 270;
+        } else {
+          // Path goes vertical first, so last segment is horizontal
+          return dx > 0 ? 0 : 180;
+        }
+      } else {
+        // First segment direction
+        if (preferHorizontal) {
+          // First segment is horizontal
+          return dx > 0 ? 0 : 180;
+        } else {
+          // First segment is vertical
+          return dy > 0 ? 90 : 270;
+        }
+      }
+    }
+
+    case "grid": {
+      // For grid paths with middle point: start → midX horizontal → midX vertical → end horizontal
+      const dx = end.x - start.x;
+
+      if (isEndPoint) {
+        // Last segment is always horizontal (from midX to end.x)
+        return dx > 0 ? 0 : 180;
+      } else {
+        // First segment is always horizontal (from start to midX)
+        return dx > 0 ? 0 : 180;
+      }
+    }
+
+    default:
+      return getAngleDegrees(start, end);
+  }
+};
+
+/**
  * Calculate plug position and rotation for drawing as a regular path
  */
 export const calculatePlugTransform = (
   start: Point,
   end: Point,
   isEndPlug: boolean = true,
-  plugSize: number = 8
+  _plugSize: number = 8,
+  offset: number = 0,
+  tangentAngle?: number
 ): { position: Point; rotation: number } => {
-  const angle = getAngleDegrees(start, end);
+  const angleRad = getAngle(start, end);
+  const angle = tangentAngle !== undefined ? tangentAngle : getAngleDegrees(start, end);
 
   if (isEndPlug) {
-    // For end plug, position it exactly at the end point
+    // For end plug, position it at the end point, offset backwards along the line
     return {
       position: {
-        x: end.x,
-        y: end.y,
+        x: end.x - offset * Math.cos(angleRad),
+        y: end.y - offset * Math.sin(angleRad),
       },
       rotation: angle,
     };
   } else {
-    // For start plug, position it exactly at the start point
+    // For start plug, position it at the start point, offset forward along the line
     return {
       position: {
-        x: start.x,
-        y: start.y,
+        x: start.x + offset * Math.cos(angleRad),
+        y: start.y + offset * Math.sin(angleRad),
       },
       rotation: angle + 180, // Opposite direction for start plug
     };
@@ -272,11 +435,6 @@ export const measureElementWithLayout = async (
 
   // Use measureElement which now uses measureInWindow internally
   const result = await measureElement(element, 10, 150);
-
-  if (result) {
-  } else {
-  }
-
   return result;
 };
 
@@ -303,7 +461,7 @@ export const measureRelativeToContainer = async (
     // This method measures the element relative to a specific ancestor
     element.current.measureLayout(
       containerRef.current,
-      (x: number, y: number, width: number, height: number) => {
+      (x: number, y: number, _width: number, _height: number) => {
         resolve({ x, y });
       },
       () => {
@@ -347,7 +505,9 @@ export const getContainerOffset = async (
 
       return offset;
     }
-  } catch (error) {}
+  } catch (error) {
+    // Ignore errors and return default offset
+  }
 
   return { x: 0, y: 0 };
 };
@@ -378,10 +538,10 @@ export const convertPointToRelative = async (
 export const calculateConnectionPointsRelative = async (
   startElement: any,
   endElement: any,
-  startSocket: SocketPosition = "center",
-  endSocket: SocketPosition = "center",
+  startSocket: SocketPosition = "auto",
+  endSocket: SocketPosition = "auto",
   containerRef?: React.RefObject<any>
-): Promise<{ start: Point; end: Point } | null> => {
+): Promise<{ start: Point; end: Point; startSocket?: SocketPosition; endSocket?: SocketPosition } | null> => {
   if (!startElement || !endElement) {
     return null;
   }
@@ -460,7 +620,7 @@ export const calculateConnectionPointsRelative = async (
         const endPoint = getSocketPoint(adjustedEndLayout, effectiveEndSocket);
 
         // Verificación de coherencia (silent in production)
-        const isCoherent =
+        const _isCoherent =
           Math.abs(
             startPoint.x - (startLayout.pageX + startLayout.width / 2 - offsetX)
           ) < 1 &&
@@ -473,6 +633,8 @@ export const calculateConnectionPointsRelative = async (
         resolve({
           start: startPoint,
           end: endPoint,
+          startSocket: effectiveStartSocket,
+          endSocket: effectiveEndSocket,
         });
       }
     };
@@ -562,10 +724,10 @@ export const calculateConnectionPointsRelative = async (
 export const calculateConnectionPoints = async (
   startElement: any,
   endElement: any,
-  startSocket: SocketPosition = "center",
-  endSocket: SocketPosition = "center",
+  startSocket: SocketPosition = "auto",
+  endSocket: SocketPosition = "auto",
   containerRef?: React.RefObject<any>
-): Promise<{ start: Point; end: Point } | null> => {
+): Promise<{ start: Point; end: Point; startSocket?: SocketPosition; endSocket?: SocketPosition } | null> => {
   // Get container offset first
   const containerOffset = await getContainerOffset(containerRef);
 
@@ -632,12 +794,14 @@ export const calculateConnectionPoints = async (
   }
 
   // Additional validation for negative coordinates
-  if (startPoint.x < 0 || startPoint.y < 0) {
-  }
-  if (endPoint.x < 0 || endPoint.y < 0) {
-  }
+  // These checks are kept for future validation logic
 
-  const result = { start: startPoint, end: endPoint };
+  const result = {
+    start: startPoint,
+    end: endPoint,
+    startSocket: effectiveStartSocket,
+    endSocket: effectiveEndSocket
+  };
 
   return result;
 };
@@ -649,7 +813,9 @@ export const generatePathData = (
   start: Point,
   end: Point,
   pathType: PathType | PathConfiguration,
-  curvature: number = 0.2
+  curvature: number = 0.2,
+  startSocket?: SocketPosition,
+  endSocket?: SocketPosition
 ): string => {
   const type = typeof pathType === "string" ? pathType : pathType.type;
 
@@ -657,19 +823,14 @@ export const generatePathData = (
     case "straight":
       return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
 
-    case "arc": {
-      const dx = end.x - start.x;
-      const dy = end.y - start.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const radius = distance * curvature;
-      return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${end.x} ${end.y}`;
-    }
+    case "arc":
+      return generateArcPath(start, end, curvature);
 
     case "fluid":
-      return generateFluidPath(start, end, curvature);
+      return generateFluidPath(start, end, curvature, startSocket, endSocket);
 
     case "magnet":
-      return generateMagnetPath(start, end);
+      return generateMagnetPath(start, end, startSocket, endSocket);
 
     case "grid":
       return generateGridPath(start, end);
@@ -686,11 +847,11 @@ export const generateEnhancedPathData = (
   start: Point,
   end: Point,
   pathType: PathType | PathConfiguration,
-  curvature: number = 0.2
+  curvature: number = 0.2,
+  startSocket?: SocketPosition,
+  endSocket?: SocketPosition
 ): string => {
-  // For now, use basic path generation
-  // Socket gravity can be implemented later
-  return generatePathData(start, end, pathType, curvature);
+  return generatePathData(start, end, pathType, curvature, startSocket, endSocket);
 };
 
 /**
@@ -734,15 +895,184 @@ export const createPlugPath = (
       case "diamond":
         return `M 0 ${-halfSize} L ${halfSize} 0 L 0 ${halfSize} L ${-halfSize} 0 z`;
 
-      case "hand":
-        return `M ${-halfSize} 0 L ${
-          halfSize * 0.6
-        } ${-halfSize} L ${halfSize} ${-halfSize * 0.3} L ${
-          halfSize * 0.8
-        } 0 L ${halfSize} ${halfSize * 0.7} L ${halfSize * 0.6} ${halfSize} z`;
+      case "crosshair": {
+        // Cross/plus symbol made of two perpendicular lines
+        const thickness = normalizedSize * 0.15; // Line thickness
+        return `M ${-thickness} ${-halfSize} L ${thickness} ${-halfSize}
+                L ${thickness} ${-thickness} L ${halfSize} ${-thickness}
+                L ${halfSize} ${thickness} L ${thickness} ${thickness}
+                L ${thickness} ${halfSize} L ${-thickness} ${halfSize}
+                L ${-thickness} ${thickness} L ${-halfSize} ${thickness}
+                L ${-halfSize} ${-thickness} L ${-thickness} ${-thickness} z`;
+      }
 
-      case "crosshair":
-        return `M 0 ${-halfSize} L 0 ${halfSize} M ${-halfSize} 0 L ${halfSize} 0`;
+      case "star": {
+        // Five-pointed star
+        const outerR = halfSize;
+        const innerR = halfSize * 0.382;
+        const points: string[] = [];
+        for (let i = 0; i < 5; i++) {
+          const outerAngle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+          const innerAngle = ((i + 0.5) * 2 * Math.PI) / 5 - Math.PI / 2;
+          if (i === 0) {
+            points.push(`M ${outerR * Math.cos(outerAngle)} ${outerR * Math.sin(outerAngle)}`);
+          } else {
+            points.push(`L ${outerR * Math.cos(outerAngle)} ${outerR * Math.sin(outerAngle)}`);
+          }
+          points.push(`L ${innerR * Math.cos(innerAngle)} ${innerR * Math.sin(innerAngle)}`);
+        }
+        points.push('z');
+        return points.join(' ');
+      }
+
+      case "heart": {
+        // Heart shape
+        const heartW = halfSize * 0.8;
+        const heartH = halfSize;
+        return `M 0 ${heartH * 0.3}
+                C ${-heartW} ${-heartH * 0.5} ${-heartW * 0.5} ${-heartH} 0 ${-heartH * 0.2}
+                C ${heartW * 0.5} ${-heartH} ${heartW} ${-heartH * 0.5} 0 ${heartH * 0.3} z`;
+      }
+
+      case "chevron":
+        // Chevron arrow (V shape)
+        return `M ${halfSize} 0 L ${-halfSize * 0.5} ${halfSize}
+                L ${-halfSize * 0.5} ${halfSize * 0.5} L ${halfSize * 0.5} 0
+                L ${-halfSize * 0.5} ${-halfSize * 0.5} L ${-halfSize * 0.5} ${-halfSize} z`;
+
+      case "hollowArrow": {
+        // Hollow arrow outline (not filled)
+        const arrowWidth = halfSize * 0.3;
+        return `M ${halfSize} 0 L ${-halfSize} ${-halfSize}
+                L ${-halfSize} ${-arrowWidth} L ${halfSize * 0.3} 0
+                L ${-halfSize} ${arrowWidth} L ${-halfSize} ${halfSize} z`;
+      }
+
+      case "pentagon": {
+        // Regular pentagon
+        const pentPoints: string[] = [];
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+          const x = halfSize * Math.cos(angle);
+          const y = halfSize * Math.sin(angle);
+          pentPoints.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`);
+        }
+        pentPoints.push('z');
+        return pentPoints.join(' ');
+      }
+
+      case "hexagon": {
+        // Regular hexagon
+        const hexPoints: string[] = [];
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * 2 * Math.PI) / 6;
+          const x = halfSize * Math.cos(angle);
+          const y = halfSize * Math.sin(angle);
+          hexPoints.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`);
+        }
+        hexPoints.push('z');
+        return hexPoints.join(' ');
+      }
+
+      case "bar": {
+        // Perpendicular bar (line perpendicular to the connection line)
+        const barThickness = normalizedSize * 0.15;
+        return `M ${-barThickness} ${-halfSize} L ${barThickness} ${-halfSize}
+                L ${barThickness} ${halfSize} L ${-barThickness} ${halfSize} z`;
+      }
+
+      case "lineArrow": {
+        // Two lines intersecting at 45 degrees (90 degree total angle between lines)
+        const lineWidth = normalizedSize * 0.2;
+        const armLength = halfSize * 0.9;
+        const halfAngle = Math.PI / 4; // 45 degrees from center = 90 degrees total
+
+        // First line (upper)
+        const x1Start = 0;
+        const y1Start = 0;
+        const x1End = -armLength * Math.cos(halfAngle);
+        const y1End = -armLength * Math.sin(halfAngle);
+
+        // Second line (lower)
+        const x2Start = 0;
+        const y2Start = 0;
+        const x2End = -armLength * Math.cos(halfAngle);
+        const y2End = armLength * Math.sin(halfAngle);
+
+        // Create two separate line paths
+        return `M ${x1Start} ${y1Start - lineWidth/2} L ${x1End} ${y1End - lineWidth/2}
+                L ${x1End} ${y1End + lineWidth/2} L ${x1Start} ${y1Start + lineWidth/2} z
+                M ${x2Start} ${y2Start - lineWidth/2} L ${x2End} ${y2End - lineWidth/2}
+                L ${x2End} ${y2End + lineWidth/2} L ${x2Start} ${y2Start + lineWidth/2} z`;
+      }
+
+      case "lineArrowNarrow": {
+        // Two lines intersecting at 30 degrees (60 degree total angle between lines)
+        const lineWidth = normalizedSize * 0.2;
+        const armLength = halfSize * 0.9;
+        const halfAngle = Math.PI / 6; // 30 degrees from center = 60 degrees total
+
+        const x1End = -armLength * Math.cos(halfAngle);
+        const y1End = -armLength * Math.sin(halfAngle);
+        const x2End = -armLength * Math.cos(halfAngle);
+        const y2End = armLength * Math.sin(halfAngle);
+
+        return `M 0 ${-lineWidth/2} L ${x1End} ${y1End - lineWidth/2}
+                L ${x1End} ${y1End + lineWidth/2} L 0 ${lineWidth/2} z
+                M 0 ${-lineWidth/2} L ${x2End} ${y2End - lineWidth/2}
+                L ${x2End} ${y2End + lineWidth/2} L 0 ${lineWidth/2} z`;
+      }
+
+      case "lineArrowVeryNarrow": {
+        // Two lines intersecting at 20 degrees (40 degree total angle between lines)
+        const lineWidth = normalizedSize * 0.2;
+        const armLength = halfSize * 0.95;
+        const halfAngle = Math.PI / 9; // 20 degrees from center = 40 degrees total
+
+        const x1End = -armLength * Math.cos(halfAngle);
+        const y1End = -armLength * Math.sin(halfAngle);
+        const x2End = -armLength * Math.cos(halfAngle);
+        const y2End = armLength * Math.sin(halfAngle);
+
+        return `M 0 ${-lineWidth/2} L ${x1End} ${y1End - lineWidth/2}
+                L ${x1End} ${y1End + lineWidth/2} L 0 ${lineWidth/2} z
+                M 0 ${-lineWidth/2} L ${x2End} ${y2End - lineWidth/2}
+                L ${x2End} ${y2End + lineWidth/2} L 0 ${lineWidth/2} z`;
+      }
+
+      case "lineArrowWide": {
+        // Two lines intersecting at 60 degrees (120 degree total angle between lines)
+        const lineWidth = normalizedSize * 0.2;
+        const armLength = halfSize * 0.85;
+        const halfAngle = Math.PI / 3; // 60 degrees from center = 120 degrees total
+
+        const x1End = -armLength * Math.cos(halfAngle);
+        const y1End = -armLength * Math.sin(halfAngle);
+        const x2End = -armLength * Math.cos(halfAngle);
+        const y2End = armLength * Math.sin(halfAngle);
+
+        return `M 0 ${-lineWidth/2} L ${x1End} ${y1End - lineWidth/2}
+                L ${x1End} ${y1End + lineWidth/2} L 0 ${lineWidth/2} z
+                M 0 ${-lineWidth/2} L ${x2End} ${y2End - lineWidth/2}
+                L ${x2End} ${y2End + lineWidth/2} L 0 ${lineWidth/2} z`;
+      }
+
+      case "lineArrowVeryWide": {
+        // Two lines intersecting at 75 degrees (150 degree total angle between lines)
+        const lineWidth = normalizedSize * 0.2;
+        const armLength = halfSize * 0.8;
+        const halfAngle = (Math.PI * 5) / 12; // 75 degrees from center = 150 degrees total
+
+        const x1End = -armLength * Math.cos(halfAngle);
+        const y1End = -armLength * Math.sin(halfAngle);
+        const x2End = -armLength * Math.cos(halfAngle);
+        const y2End = armLength * Math.sin(halfAngle);
+
+        return `M 0 ${-lineWidth/2} L ${x1End} ${y1End - lineWidth/2}
+                L ${x1End} ${y1End + lineWidth/2} L 0 ${lineWidth/2} z
+                M 0 ${-lineWidth/2} L ${x2End} ${y2End - lineWidth/2}
+                L ${x2End} ${y2End + lineWidth/2} L 0 ${lineWidth/2} z`;
+      }
 
       default:
         // Fallback to simple arrow if unknown plug type
@@ -882,8 +1212,7 @@ export const calculatePathBoundingBoxWithOutline = (
   outline: any
 ): BoundingBox => {
   // Validate points before calculating bounds
-  if (start.x === 0 && start.y === 0 && end.x === 0 && end.y === 0) {
-  }
+  // (validation logic can be added here if needed)
 
   const baseBounds = calculatePathBoundingBox(
     start,
@@ -945,43 +1274,167 @@ export const normalizePlugOutlineOptions = (
   return normalizeOutlineOptions(outline, defaultColor);
 };
 
-// Fluid path generation
-const generateFluidPath = (
+// Constants for arc path calculation
+const CIRCLE_8_RAD = Math.PI / 8; // 22.5 degrees
+const CIRCLE_CP = 0.5522847498; // Control point ratio for circular arc approximation
+
+// Arc path generation - creates a single smooth arc using cubic Bezier
+const generateArcPath = (
   start: Point,
   end: Point,
   curvature: number = 0.2
 ): string => {
+  // Determine if arc should go downward (affects arc direction)
+  // For simplicity, we'll determine this based on vertical relationship
+  const downward = end.y > start.y;
+  const circle8rad = CIRCLE_8_RAD * (downward ? -1 : 1);
+
+  // Calculate angle between points
+  const angle = Math.atan2(end.y - start.y, end.x - start.x);
+
+  // Control point angles
+  const cp1Angle = -angle + circle8rad;
+  const cp2Angle = Math.PI - angle - circle8rad;
+
+  // Distance between points
+  const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+
+  // Control point distance (adjusted by curvature)
+  const crLen = (distance / Math.sqrt(2)) * CIRCLE_CP * (1 + curvature);
+
+  // Calculate control points
+  const cp1 = {
+    x: start.x + Math.cos(cp1Angle) * crLen,
+    y: start.y + Math.sin(cp1Angle) * crLen * -1
+  };
+
+  const cp2 = {
+    x: end.x + Math.cos(cp2Angle) * crLen,
+    y: end.y + Math.sin(cp2Angle) * crLen * -1
+  };
+
+  return `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${end.x} ${end.y}`;
+};
+
+// Fluid path generation - creates S-shaped curve with control points extending from socket direction
+const generateFluidPath = (
+  start: Point,
+  end: Point,
+  curvature: number = 0.2,
+  startSocket?: SocketPosition,
+  endSocket?: SocketPosition
+): string => {
+  // Calculate base distance for control point offset
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  // Create control points for smooth curves
-  const controlDistance = distance * curvature;
+  // Minimum gravity distance
+  const MIN_GRAVITY = 30;
 
-  // Perpendicular offset for curve
-  const perpX = (-dy / distance) * controlDistance;
-  const perpY = (dx / distance) * controlDistance;
+  // Calculate adaptive control point distance (half the distance between points)
+  let len = distance / 2;
+  if (len < MIN_GRAVITY) {
+    len = MIN_GRAVITY;
+  }
 
-  const cp1X = start.x + dx * 0.25 + perpX;
-  const cp1Y = start.y + dy * 0.25 + perpY;
-  const cp2X = start.x + dx * 0.75 + perpX;
-  const cp2Y = start.y + dy * 0.75 + perpY;
+  // Apply curvature factor (curvature affects the control point distance)
+  len = len * (0.5 + curvature);
 
-  return `M ${start.x} ${start.y} C ${cp1X} ${cp1Y} ${cp2X} ${cp2Y} ${end.x} ${end.y}`;
+  // Helper function to get offset based on socket position
+  const getSocketOffset = (socket: SocketPosition | undefined, isStart: boolean): { x: number, y: number } => {
+    // If no socket specified, auto-detect based on relative position
+    if (!socket || socket === 'auto' || socket === 'center') {
+      // Auto-detect: use the dominant direction
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal is dominant
+        if (isStart) {
+          return dx > 0 ? { x: len, y: 0 } : { x: -len, y: 0 };
+        } else {
+          return dx > 0 ? { x: -len, y: 0 } : { x: len, y: 0 };
+        }
+      } else {
+        // Vertical is dominant
+        if (isStart) {
+          return dy > 0 ? { x: 0, y: len } : { x: 0, y: -len };
+        } else {
+          return dy > 0 ? { x: 0, y: -len } : { x: 0, y: len };
+        }
+      }
+    }
+
+    // Use explicit socket position
+    switch (socket) {
+      case 'top':
+        return { x: 0, y: -len };
+      case 'right':
+        return { x: len, y: 0 };
+      case 'bottom':
+        return { x: 0, y: len };
+      case 'left':
+        return { x: -len, y: 0 };
+      case 'top_left':
+        return { x: -len * 0.7, y: -len * 0.7 };
+      case 'top_right':
+        return { x: len * 0.7, y: -len * 0.7 };
+      case 'bottom_left':
+        return { x: -len * 0.7, y: len * 0.7 };
+      case 'bottom_right':
+        return { x: len * 0.7, y: len * 0.7 };
+      default:
+        return { x: 0, y: 0 };
+    }
+  };
+
+  // Calculate control points based on socket directions
+  const startOffset = getSocketOffset(startSocket, true);
+  const endOffset = getSocketOffset(endSocket, false);
+
+  const cp1 = {
+    x: start.x + startOffset.x,
+    y: start.y + startOffset.y
+  };
+
+  const cp2 = {
+    x: end.x + endOffset.x,
+    y: end.y + endOffset.y
+  };
+
+  return `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${end.x} ${end.y}`;
 };
 
-// Magnet path generation
-const generateMagnetPath = (start: Point, end: Point): string => {
-  const midX = (start.x + end.x) / 2;
-  const midY = (start.y + end.y) / 2;
+// Magnet path generation - creates orthogonal (right-angle) paths
+const generateMagnetPath = (
+  start: Point,
+  end: Point,
+  startSocket?: SocketPosition,
+  _endSocket?: SocketPosition
+): string => {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
 
-  // Create L-shaped path
-  if (Math.abs(end.x - start.x) > Math.abs(end.y - start.y)) {
-    // Horizontal preference
-    return `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
+  // Determine primary direction based on socket positions if available
+  let preferHorizontal = Math.abs(dx) > Math.abs(dy);
+
+  // If we have socket information, use it to determine the path direction
+  if (startSocket && startSocket !== 'auto' && startSocket !== 'center') {
+    const horizontalSockets: SocketPosition[] = ['left', 'right'];
+    const verticalSockets: SocketPosition[] = ['top', 'bottom'];
+
+    if (horizontalSockets.includes(startSocket)) {
+      preferHorizontal = true;
+    } else if (verticalSockets.includes(startSocket)) {
+      preferHorizontal = false;
+    }
+  }
+
+  // Create orthogonal path with single turn
+  if (preferHorizontal) {
+    // Go horizontal first, then vertical
+    return `M ${start.x} ${start.y} L ${end.x} ${start.y} L ${end.x} ${end.y}`;
   } else {
-    // Vertical preference
-    return `M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
+    // Go vertical first, then horizontal
+    return `M ${start.x} ${start.y} L ${start.x} ${end.y} L ${end.x} ${end.y}`;
   }
 };
 

@@ -68,7 +68,7 @@ export default function EffectsDemo() {
           </View>
           <View
             ref={ref2End}
-            style={[styles.box, styles.purpleBox, { bottom: 30, right: 30 }]}
+            style={[styles.box, styles.purpleBox, { top: 30, right: 30 }]}
           >
             <Text style={styles.boxText}>End</Text>
           </View>
@@ -102,7 +102,7 @@ export default function EffectsDemo() {
           </View>
           <View
             ref={ref3End}
-            style={[styles.box, styles.tealBox, { bottom: 20, right: 40 }]}
+            style={[styles.box, styles.tealBox, { top: 20, right: 40 }]}
           >
             <Text style={styles.boxText}>Arrow</Text>
           </View>
@@ -134,7 +134,7 @@ export default function EffectsDemo() {
           </View>
           <View
             ref={ref4End}
-            style={[styles.box, styles.pinkBox, { bottom: 50, right: 50 }]}
+            style={[styles.box, styles.pinkBox, { top: 50, right: 50 }]}
           >
             <Text style={styles.boxText}>Effects</Text>
           </View>

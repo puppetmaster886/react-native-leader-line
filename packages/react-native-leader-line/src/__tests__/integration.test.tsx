@@ -218,6 +218,7 @@ describe("Integration Tests", () => {
             manager.clearAll();
             setInitialized(false);
           } catch (error) {
+            // Ignore cleanup errors
           }
         }, [manager]);
 

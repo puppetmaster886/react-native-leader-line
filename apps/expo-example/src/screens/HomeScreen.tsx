@@ -33,6 +33,12 @@ const examples = [
     color: "#e74c3c",
   },
   {
+    title: "Interactive Plugs",
+    description: "Customize plug types, sizes, and stroke width dynamically",
+    screen: "InteractivePlugDemo" as const,
+    color: "#27ae60",
+  },
+  {
     title: "Animations",
     description: "Animated lines and transitions",
     screen: "AnimationsDemo" as const,

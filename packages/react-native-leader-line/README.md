@@ -16,36 +16,91 @@ A React Native port of the popular [leader-line](https://github.com/anseki/leade
 **Try it live:** [https://puppetmaster886.github.io/react-native-leader-line](https://puppetmaster886.github.io/react-native-leader-line)
 
 Experience all features interactively:
+- ✅ **20+ Plug Types with Interactive Controls** (NEW in v1.5.0)
+- ✅ **Plug Offset Distance Control** (NEW in v1.5.0)
 - ✅ **Intelligent Auto Socket Selection** (NEW in v1.4.2)
 - ✅ All socket positions (auto, center, top, right, bottom, left, corners)
 - ✅ Different path types (straight, arc, fluid, magnet, grid)
-- ✅ Various plug types (arrows, discs, squares, diamonds)
+- ✅ Various plug types (arrows, discs, squares, diamonds, stars, hearts, and more)
 - ✅ Labels, animations, and styling options
 - ✅ Performance optimization demos
 
 *Click and explore - no installation required!*
 
+> **⚠️ Note on Web Support:** While this library works on React Native Web, animated line updates are currently a work in progress on web platforms. Animations work perfectly on iOS and Android devices. For the best experience with animations, please test on a mobile device.
+
 ---
 
-## 🎉 What's New in v1.4.2
+## 🎉 What's New in v1.5.0
 
-### 🧠 Intelligent Auto Socket Selection
+### 🎨 Extensive Plug Types Collection (20+ Types!)
 
-The `socket="auto"` option now intelligently selects the **closest connection point** from 9 available positions (center, 4 sides, 4 corners) instead of always using the center. This creates more natural-looking connections automatically!
+We've significantly expanded the plug types with 20 different styles including arrows, geometric shapes, and line-based arrows with varying angles:
+
+```tsx
+<LeaderLine
+  start={{ element: startRef }}
+  end={{ element: endRef }}
+  startPlug="disc"         // Simple disc
+  endPlug="hollowArrow"    // Outlined arrow
+  startPlugSize={16}       // Customize size
+  endPlugSize={16}
+  color="#3498db"
+/>
+```
+
+**Available plug types:**
+- **None**: `none` - No plug marker
+- **Basic shapes**: `disc`, `square`, `diamond`, `pentagon`, `hexagon`
+- **Arrows**: `arrow1`, `arrow2`, `arrow3`, `hollowArrow`, `chevron`
+- **Special**: `star`, `heart`, `crosshair`, `bar` (perpendicular line)
+- **Line arrows** (2 intersecting lines): `lineArrow` (45°), `lineArrowNarrow` (30°), `lineArrowVeryNarrow` (20°), `lineArrowWide` (60°), `lineArrowVeryWide` (75°)
+
+### 📏 Plug Offset Control
+
+Fine-tune the distance between your plugs and connection points:
+
+```tsx
+<LeaderLine
+  start={{ element: startRef }}
+  end={{ element: endRef }}
+  startPlugOffset={10}    // Move start plug 10px away from element
+  endPlugOffset={15}      // Move end plug 15px away from element
+  endPlug="arrow1"
+/>
+```
+
+**Perfect for:**
+- Creating spacing around connection points
+- Avoiding overlap with element borders
+- Custom visual styling with gaps
+
+### 🎯 Intelligent Plug Rotation
+
+Plugs now automatically align with the path tangent angle, creating natural-looking connections for all path types:
+
+- **Straight paths**: Plugs align with line direction
+- **Arc paths**: Plugs follow the curve tangent
+- **Fluid paths**: Plugs align with socket direction
+- **Magnet/Grid paths**: Plugs follow segment direction
+
+This works automatically - no configuration needed!
+
+### 🧠 Intelligent Auto Socket Selection (v1.4.2)
+
+The `socket="auto"` option intelligently selects the **closest connection point** from 9 available positions (center, 4 sides, 4 corners) instead of always using the center. This creates more natural-looking connections automatically!
 
 ```tsx
 <LeaderLine
   start={{ element: sourceRef }}
   end={{ element: targetRef }}
-  startSocket="auto"  // 🎯 Automatically chooses optimal socket
+  startSocket="auto"  // 🎯 Now default! Automatically chooses optimal socket
   endSocket="auto"    // 🎯 Smart connection points
   color="#3498db"
 />
 ```
 
 **Perfect for:** Dynamic layouts, flow diagrams, org charts, mind maps, and any UI where elements move or resize.
-
-See the full changelog and interactive demo in the "Socket Positions Demo" screen!
 
 ---
 
@@ -74,13 +129,15 @@ This library is specifically optimized for **Large Language Model (LLM) consumpt
 
 - 🎯 **Multiple API Styles**: Functional components, Hook-based API, Imperative API (leader-line compatible)
 - 🧠 **Intelligent Auto Socket** (v1.4.2+): Automatically selects optimal connection points from 9 positions
+- 🎨 **20+ Plug Types** (v1.5.0+): Extensive collection including arrows, shapes, and line-based markers
+- 📏 **Plug Offset Control** (v1.5.0+): Precise distance control between plugs and connection points
+- 🎯 **Smart Plug Rotation** (v1.5.0+): Automatic tangent alignment for all path types
 - 🔄 **Dynamic Updates**: Change line properties in real-time
 - 🎨 **Rich Styling**: Colors, gradients, outlines, shadows, dash patterns
-- 📐 **Path Types**: Straight lines, arcs, and custom curvature
+- 📐 **Path Types**: Straight, arc, fluid, magnet, and grid paths with custom curvature
 - 🔌 **Socket System**: Flexible connection points with gravity (9 positions: center, 4 sides, 4 corners)
 - 🏷️ **Multiple Labels**: Start, middle, end, caption, and path labels
 - ⚡ **Animations**: Show/hide effects with smooth transitions
-- 🎪 **Plug Types**: Arrows, discs, squares, and custom markers
 - 📱 **Mobile Optimized**: Performance tuned for React Native with React.memo
 - 🔧 **TypeScript**: Full type safety and IntelliSense support
 - 🔀 **Migration Ready**: Backward compatible with original leader-line API
@@ -284,19 +341,25 @@ const props: LeaderLineProps = {
 
 ### LeaderLine Props
 
-| Prop                         | Type             | Default      | Description                                                       |
-| ---------------------------- | ---------------- | ------------ | ----------------------------------------------------------------- |
-| `start`                      | `Attachment`     | **required** | Starting attachment point                                         |
-| `end`                        | `Attachment`     | **required** | Ending attachment point                                           |
-| `color`                      | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                                     |
-| `strokeWidth`                | `number`         | `2`          | Line thickness in pixels                                          |
-| `path`                       | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`. See `PathType`. |
-| `endPlug`                    | `PlugType`       | `"arrow1"`   | End marker style. See `PlugType` definition.                      |
-| `startSocket`                | `SocketPosition` | `"center"`   | Connection point on start element                                 |
-| `endSocket`                  | `SocketPosition` | `"center"`   | Connection point on end element                                   |
-| `debugSvgBackground`         | `boolean`        | `false`      | Show green background on SVG element for debugging                |
-| `debugContainerBackground`   | `boolean`        | `false`      | Show magenta background on container for debugging                |
-| `debugEarlyReturnBackground` | `boolean`        | `false`      | Show blue background when component early returns                 |
+| Prop                         | Type             | Default      | Description                                                         |
+| ---------------------------- | ---------------- | ------------ | ------------------------------------------------------------------- |
+| `start`                      | `Attachment`     | **required** | Starting attachment point                                           |
+| `end`                        | `Attachment`     | **required** | Ending attachment point                                             |
+| `color`                      | `string`         | `"#ff6b6b"`  | Line color (CSS color string)                                       |
+| `strokeWidth`                | `number`         | `2`          | Line thickness in pixels                                            |
+| `path`                       | `PathType`       | `"straight"` | Line path type: `"straight"`, `"arc"`, `"fluid"`, `"magnet"`, `"grid"`. See `PathType`. |
+| `startPlug`                  | `PlugType`       | `"behind"`   | Start marker style. See `PlugType` definition below.                |
+| `endPlug`                    | `PlugType`       | `"arrow1"`   | End marker style. See `PlugType` definition below.                  |
+| `startPlugSize`              | `number`         | `8`          | Size of the start plug in pixels                                    |
+| `endPlugSize`                | `number`         | `8`          | Size of the end plug in pixels                                      |
+| `startPlugOffset`            | `number`         | `0`          | Distance offset for start plug from connection point (v1.5.0+)     |
+| `endPlugOffset`              | `number`         | `0`          | Distance offset for end plug from connection point (v1.5.0+)       |
+| `startSocket`                | `SocketPosition` | `"auto"`     | Connection point on start element                                   |
+| `endSocket`                  | `SocketPosition` | `"auto"`     | Connection point on end element                                     |
+| `curvature`                  | `number`         | `0.2`        | Curvature amount for arc and fluid paths (0-1)                      |
+| `debugSvgBackground`         | `boolean`        | `false`      | Show green background on SVG element for debugging                  |
+| `debugContainerBackground`   | `boolean`        | `false`      | Show magenta background on container for debugging                  |
+| `debugEarlyReturnBackground` | `boolean`        | `false`      | Show blue background when component early returns                   |
 
 ### Socket Positions
 
@@ -356,23 +419,75 @@ The `"auto"` socket now intelligently selects the **closest connection point** f
 
 **Visual demo:** Check the "Socket Positions Demo" in the expo-example app to see auto socket selection in action with 8 live examples!
 
-### Plug Types
+### Plug Types (v1.5.0 - 20+ Types!)
+
+All plug types automatically align with the path tangent angle for natural-looking connections.
 
 ```typescript
 type PlugType =
-  | "none"
-  | "arrow1"
-  | "arrow2"
-  | "arrow3"
-  | "disc"
-  | "square"
-  | "behind";
+  | "none"           // No plug marker
+  | "behind"         // Hidden behind element
+  | "disc"           // Filled circle
+  | "square"         // Filled square
+  | "arrow1"         // Standard arrow (filled triangle)
+  | "arrow2"         // Wide arrow
+  | "arrow3"         // Narrow arrow
+  | "diamond"        // Diamond shape
+  | "star"           // Five-pointed star
+  | "heart"          // Heart shape
+  | "chevron"        // Chevron/angle bracket
+  | "hollowArrow"    // Outlined arrow (not filled)
+  | "pentagon"       // Five-sided polygon
+  | "hexagon"        // Six-sided polygon
+  | "crosshair"      // Cross/plus shape
+  | "bar"            // Perpendicular line
+  | "lineArrow"      // Two lines at 45° (90° total angle)
+  | "lineArrowNarrow"      // Two lines at 30° (60° total angle)
+  | "lineArrowVeryNarrow"  // Two lines at 20° (40° total angle)
+  | "lineArrowWide"        // Two lines at 60° (120° total angle)
+  | "lineArrowVeryWide";   // Two lines at 75° (150° total angle)
 ```
+
+**Plug Customization:**
+
+```tsx
+<LeaderLine
+  start={{ element: startRef }}
+  end={{ element: endRef }}
+  startPlug="star"
+  endPlug="hollowArrow"
+  startPlugSize={16}      // Size in pixels
+  endPlugSize={12}
+  startPlugOffset={5}     // Distance from element
+  endPlugOffset={10}
+  color="#3498db"
+/>
+```
+
+**Try the Interactive Plug Demo** in the expo-example app to see all 20 plug types in action with live controls for size, offset, and stroke width!
 
 ### Path Types
 
 ```typescript
-type PathType = "straight" | "arc" | "fluid";
+type PathType = "straight" | "arc" | "fluid" | "magnet" | "grid";
+```
+
+- **straight**: Direct line between points
+- **arc**: Simple curved arc with configurable curvature
+- **fluid**: Smooth bezier curves following socket directions
+- **magnet**: Orthogonal paths with rounded corners
+- **grid**: Right-angle paths (horizontal-vertical-horizontal)
+
+**Path Customization:**
+
+```tsx
+<LeaderLine
+  start={{ element: startRef }}
+  end={{ element: endRef }}
+  path="arc"
+  curvature={0.3}      // 0 = straight, 1 = maximum curve
+  color="#3498db"
+/>
 ```
 
 ## 🔄 Migrating from leader-line
